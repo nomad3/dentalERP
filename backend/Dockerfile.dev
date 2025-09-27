@@ -1,0 +1,20 @@
+FROM node:18-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies first (for better caching)
+COPY package*.json ./
+RUN npm ci --only=production=false
+
+# Copy source code
+COPY . .
+
+# Create uploads directory
+RUN mkdir -p uploads logs
+
+# Expose port
+EXPOSE 3001
+
+# Development command with hot reloading
+CMD ["npm", "run", "dev"]
