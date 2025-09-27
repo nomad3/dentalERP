@@ -1,11 +1,16 @@
 FROM node:18-alpine
 
+# Install basic tools and Python (needed for some native modules)
+RUN apk add --no-cache git python3 make g++
+
 # Set working directory
 WORKDIR /app
 
-# Install dependencies first (for better caching)
-COPY package*.json ./
-RUN npm ci
+# Copy package.json
+COPY package.json ./
+
+# Install dependencies with npm install (no lock file needed)
+RUN npm install --verbose
 
 # Copy source code
 COPY . .
@@ -14,4 +19,4 @@ COPY . .
 EXPOSE 3000
 
 # Development command with hot reloading
-CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
