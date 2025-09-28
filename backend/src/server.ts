@@ -1,5 +1,5 @@
 import compression from 'compression';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
@@ -64,8 +64,24 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Apply rate limiting to API routes
-app.use('/api/', limiter);
+// CORS configuration (must be early to handle preflight before other middleware)
+const allowedOrigins = (process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow non-browser or same-origin
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Security middleware
 app.use(helmet({
@@ -79,12 +95,8 @@ app.use(helmet({
   },
 }));
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-  optionsSuccessStatus: 200,
-}));
+// Apply rate limiting to API routes (after CORS so preflight returns proper headers)
+app.use('/api/', limiter);
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

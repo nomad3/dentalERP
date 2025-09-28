@@ -1,0 +1,6 @@
+[
+  {"ext_id":"J-2001","first":"Mia","last":"Lopez","email":"mia.lopez+2001@demo.local","phone":"212-555-2101","gender":"F","dob":"1990-02-18","notes":"Walk-in"},
+  {"ext_id":"J-2002","first":"Ethan","last":"Wang","email":"ethan.wang+2002@demo.local","phone":"212-555-2102","gender":"M","dob":"1984-10-05","notes":"Preferred provider: Dr. Clark"},
+  {"ext_id":"J-2003","first":"Amelia","last":"Taylor","email":"amelia.taylor+2003@demo.local","phone":"212-555-2103","gender":"F","dob":"1995-06-11","notes":""},
+  {"ext_id":"J-2004","first":"Logan","last":"Martin","email":"logan.martin+2004@demo.local","phone":"212-555-2104","gender":"M","dob":"1992-04-27","notes":""}
+]

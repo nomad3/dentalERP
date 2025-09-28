@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { useIntegrationStatus } from '../../hooks/useAnalytics';
 
@@ -138,9 +139,9 @@ const IntegrationsPage: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900">Need data without a live integration?</h3>
             <p className="text-sm text-gray-600">Upload CSV or PDF and we’ll parse it.</p>
           </div>
-          <a href="/integrations/ingestion" className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">
+          <Link to="/integrations/ingestion" className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">
             Manual Ingestion
-          </a>
+          </Link>
         </div>
       </div>
 

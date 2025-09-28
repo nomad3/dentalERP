@@ -1,0 +1,15 @@
+{
+  "target": "patients",
+  "dataset": "patients",
+  "sourceSystem": "dentrix",
+  "fieldMap": {
+    "externalId": "ext_id",
+    "firstName": "first",
+    "lastName": "last",
+    "email": "email",
+    "phone": "phone",
+    "gender": "gender",
+    "dateOfBirth": "dob",
+    "notes": "notes"
+  }
+}

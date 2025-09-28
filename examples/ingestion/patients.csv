@@ -1,0 +1,11 @@
+ext_id,first,last,email,phone,gender,dob,notes
+P-1001,Ava,Reed,ava.reed+1001@demo.local,212-555-1101,F,1990-03-14,New patient from flyer
+P-1002,Liam,Gonzalez,liam.g+1002@demo.local,212-555-1102,M,1985-11-02,Interested in whitening
+P-1003,Emma,Patel,emma.p+1003@demo.local,212-555-1103,F,1992-07-21,
+P-1004,Noah,Kim,noah.kim+1004@demo.local,212-555-1104,M,1988-01-09,Prefers afternoon appointments
+P-1005,Olivia,Nguyen,olivia.n+1005@demo.local,212-555-1105,F,1996-05-28,Allergic to penicillin
+P-1006,Elijah,Smith,elijah.s+1006@demo.local,212-555-1106,M,1991-09-17,Insurance pending
+P-1007,Isabella,Johnson,isabella.j+1007@demo.local,212-555-1107,F,1994-12-05,
+P-1008,James,Lee,james.lee+1008@demo.local,212-555-1108,M,1987-08-30,Referral: Westside Ortho
+P-1009,Sophia,Brown,sophia.b+1009@demo.local,212-555-1109,F,1993-06-12,Text reminders only
+P-1010,Lucas,Garcia,lucas.g+1010@demo.local,212-555-1110,M,1989-04-23,

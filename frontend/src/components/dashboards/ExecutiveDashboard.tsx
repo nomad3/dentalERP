@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useExecutiveKPIs, useIntegrationStatus } from '../../hooks/useAnalytics';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import KPIWidget from '../widgets/KPIWidget';
@@ -102,12 +103,12 @@ const ExecutiveDashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Explore Analytics</h3>
           <p className="text-sm text-gray-600 mb-4">Dive deeper into domain-specific views.</p>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <a href="/analytics/revenue" className="px-3 py-2 border rounded hover:bg-gray-50">Revenue</a>
-            <a href="/analytics/patients" className="px-3 py-2 border rounded hover:bg-gray-50">Patients</a>
-            <a href="/analytics/staff" className="px-3 py-2 border rounded hover:bg-gray-50">Staff</a>
-            <a href="/analytics/clinical" className="px-3 py-2 border rounded hover:bg-gray-50">Clinical</a>
-            <a href="/analytics/financial" className="px-3 py-2 border rounded hover:bg-gray-50">Financial</a>
-            <a href="/analytics/reports" className="px-3 py-2 border rounded hover:bg-gray-50">Reports</a>
+            <Link to="/analytics/revenue" className="px-3 py-2 border rounded hover:bg-gray-50">Revenue</Link>
+            <Link to="/analytics/patients" className="px-3 py-2 border rounded hover:bg-gray-50">Patients</Link>
+            <Link to="/analytics/staff" className="px-3 py-2 border rounded hover:bg-gray-50">Staff</Link>
+            <Link to="/analytics/clinical" className="px-3 py-2 border rounded hover:bg-gray-50">Clinical</Link>
+            <Link to="/analytics/financial" className="px-3 py-2 border rounded hover:bg-gray-50">Financial</Link>
+            <Link to="/analytics/reports" className="px-3 py-2 border rounded hover:bg-gray-50">Reports</Link>
           </div>
         </div>
       </div>

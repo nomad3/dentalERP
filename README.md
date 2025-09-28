@@ -133,7 +133,7 @@ dentalERP/
 ### Environment Variables
 - `NODE_ENV`: Node runtime environment (default: `development`)
 - `PORT`: Backend port (default: `3001` via compose)
-- `FRONTEND_URL`: CORS allow‑origin (default: `http://localhost:3000`)
+- `FRONTEND_URL`: CORS allow‑origin(s). Accepts comma‑separated list for dev, e.g. `http://localhost:3000,http://localhost:5173` (default includes both)
 - `DATABASE_URL`: PostgreSQL connection string (compose service)
 - `REDIS_URL`: Redis connection string (compose service)
 - `JWT_SECRET`: JWT signing secret (auth service)
