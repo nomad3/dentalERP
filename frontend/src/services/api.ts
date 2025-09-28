@@ -24,15 +24,88 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Response interceptor with refresh-token retry
+let isRefreshing = false as boolean;
+let refreshQueue: Array<{ resolve: (token: string) => void; reject: (err: any) => void }>=[];
+
+const processRefreshQueue = (error: any, token: string | null) => {
+  refreshQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else if (token) resolve(token);
+  });
+  refreshQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired, clear auth and redirect to login
-      useAuthStore.getState().clearAuth();
-      window.location.href = '/auth/login';
+  async (error) => {
+    const originalRequest = error?.config || {};
+    const status = error?.response?.status;
+    const url: string = (originalRequest?.url || '') as string;
+
+    // Only handle 401 once per request and skip auth endpoints
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/refresh');
+    if (status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+      originalRequest._retry = true;
+
+      const { refreshToken } = useAuthStore.getState();
+      if (!refreshToken) {
+        useAuthStore.getState().clearAuth();
+        window.location.href = '/auth/login';
+        return Promise.reject(error);
+      }
+
+      if (isRefreshing) {
+        // Queue this request until refresh finishes
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({
+            resolve: (token: string) => {
+              originalRequest.headers = originalRequest.headers || {};
+              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+              resolve(api(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
+      isRefreshing = true;
+      try {
+        // Use a bare axios to avoid interceptors recursion
+        const resp = await axios.post(
+          `${API_BASE_URL}/auth/refresh`,
+          { refreshToken },
+          { headers: { 'Content-Type': 'application/json' } }
+        );
+
+        const data = resp?.data || {};
+        const newAccess = data.accessToken;
+        const newRefresh = data.refreshToken || refreshToken;
+
+        if (!newAccess) {
+          throw new Error('No access token in refresh response');
+        }
+
+        // Update store tokens and default header
+        useAuthStore.getState().setTokens(newAccess, newRefresh);
+        api.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+
+        processRefreshQueue(null, newAccess);
+
+        // Retry original request with new token
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers['Authorization'] = `Bearer ${newAccess}`;
+        return api(originalRequest);
+      } catch (refreshErr) {
+        processRefreshQueue(refreshErr, null);
+        useAuthStore.getState().clearAuth();
+        window.location.href = '/auth/login';
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(error);
   }
 );

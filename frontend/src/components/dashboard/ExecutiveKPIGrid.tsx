@@ -23,7 +23,7 @@ const ExecutiveKPIGrid: React.FC<Props> = ({ practiceIds }) => {
 
   const { data: kpiRes, refetch } = useQuery({
     queryKey: ['executive-kpis', practiceIds.sort().join(',')],
-    queryFn: async () => analyticsAPI.getExecutiveKPIs(practiceIds, 'last_30_days'),
+    queryFn: async () => analyticsAPI.getExecutiveKPIs(practiceIds, '30d'),
     staleTime: 30_000,
   });
 
