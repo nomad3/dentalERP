@@ -42,37 +42,69 @@ const ExecutiveKPIGrid: React.FC<Props> = ({ practiceIds }) => {
       kpi_total_revenue: (
         <KPIWidget
           title="Total Revenue"
-          value={kpiRes ? `$${(kpiRes.data.totalRevenue.value / 1_000_000).toFixed(1)}M` : '—'}
-          change={kpiRes ? `${kpiRes.data.totalRevenue.change > 0 ? '+' : ''}${kpiRes.data.totalRevenue.change}%` : '—'}
-          trend={kpiRes?.data.totalRevenue.trend || 'neutral'}
-          source={kpiRes?.data.totalRevenue.source || 'Eaglesoft + DentalIntel'}
+          value={
+            kpiRes?.data?.totalRevenue?.value != null
+              ? `$${(kpiRes.data.totalRevenue.value / 1_000_000).toFixed(1)}M`
+              : '—'
+          }
+          change={
+            kpiRes?.data?.totalRevenue?.change != null
+              ? `${kpiRes.data.totalRevenue.change > 0 ? '+' : ''}${kpiRes.data.totalRevenue.change}%`
+              : '—'
+          }
+          trend={kpiRes?.data?.totalRevenue?.trend || 'neutral'}
+          source={kpiRes?.data?.totalRevenue?.source || 'Eaglesoft + DentalIntel'}
         />
       ),
       kpi_patient_volume: (
         <KPIWidget
           title="Patient Volume"
-          value={kpiRes ? kpiRes.data.patientVolume.value.toLocaleString() : '—'}
-          change={kpiRes ? `${kpiRes.data.patientVolume.change > 0 ? '+' : ''}${kpiRes.data.patientVolume.change}%` : '—'}
-          trend={kpiRes?.data.patientVolume.trend || 'neutral'}
-          source={kpiRes?.data.patientVolume.source || 'Dentrix + DentalIntel'}
+          value={
+            kpiRes?.data?.patientVolume?.value != null
+              ? kpiRes.data.patientVolume.value.toLocaleString()
+              : '—'
+          }
+          change={
+            kpiRes?.data?.patientVolume?.change != null
+              ? `${kpiRes.data.patientVolume.change > 0 ? '+' : ''}${kpiRes.data.patientVolume.change}%`
+              : '—'
+          }
+          trend={kpiRes?.data?.patientVolume?.trend || 'neutral'}
+          source={kpiRes?.data?.patientVolume?.source || 'Dentrix + DentalIntel'}
         />
       ),
       kpi_appointment_efficiency: (
         <KPIWidget
           title="Appointment Efficiency"
-          value={kpiRes ? `${kpiRes.data.appointmentEfficiency.value}%` : '—'}
-          change={kpiRes ? `${kpiRes.data.appointmentEfficiency.change > 0 ? '+' : ''}${kpiRes.data.appointmentEfficiency.change}%` : '—'}
-          trend={kpiRes?.data.appointmentEfficiency.trend || 'neutral'}
-          source={kpiRes?.data.appointmentEfficiency.source || 'Dentrix + Scheduling'}
+          value={
+            kpiRes?.data?.appointmentEfficiency?.value != null
+              ? `${kpiRes.data.appointmentEfficiency.value}%`
+              : '—'
+          }
+          change={
+            kpiRes?.data?.appointmentEfficiency?.change != null
+              ? `${kpiRes.data.appointmentEfficiency.change > 0 ? '+' : ''}${kpiRes.data.appointmentEfficiency.change}%`
+              : '—'
+          }
+          trend={kpiRes?.data?.appointmentEfficiency?.trend || 'neutral'}
+          source={kpiRes?.data?.appointmentEfficiency?.source || 'Dentrix + Scheduling'}
         />
       ),
       kpi_profit_margin: (
         <KPIWidget
           title="Profit Margin"
-          value={kpiRes ? `${kpiRes.data.profitMargin.value}%` : '—'}
-          change={kpiRes ? `${kpiRes.data.profitMargin.change > 0 ? '+' : ''}${kpiRes.data.profitMargin.change}%` : '—'}
-          trend={kpiRes?.data.profitMargin.trend || 'neutral'}
-          source={kpiRes?.data.profitMargin.source || 'Eaglesoft + ADP'}
+          value={
+            kpiRes?.data?.profitMargin?.value != null
+              ? `${kpiRes.data.profitMargin.value}%`
+              : '—'
+          }
+          change={
+            kpiRes?.data?.profitMargin?.change != null
+              ? `${kpiRes.data.profitMargin.change > 0 ? '+' : ''}${kpiRes.data.profitMargin.change}%`
+              : '—'
+          }
+          trend={kpiRes?.data?.profitMargin?.trend || 'neutral'}
+          source={kpiRes?.data?.profitMargin?.source || 'Eaglesoft + ADP'}
         />
       ),
     };

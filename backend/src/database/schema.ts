@@ -201,6 +201,49 @@ export const systemSettings = pgTable('system_settings', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
+// BI Daily Metrics (aggregated, synthetic for demos and fast analytics)
+export const biDailyMetrics = pgTable('bi_daily_metrics', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  practiceId: uuid('practice_id').notNull().references(() => practices.id, { onDelete: 'cascade' }),
+  locationId: uuid('location_id').references(() => locations.id),
+  date: timestamp('date').notNull(),
+
+  // Revenue & patients
+  revenue: integer('revenue').default(0),
+  targetRevenue: integer('target_revenue').default(0),
+  newPatients: integer('new_patients').default(0),
+  returningPatients: integer('returning_patients').default(0),
+
+  // Scheduling & operations
+  scheduleUtilization: integer('schedule_utilization').default(0), // percentage 0-100
+  noShows: integer('no_shows').default(0),
+  cancellations: integer('cancellations').default(0),
+  avgWaitTime: integer('avg_wait_time').default(0), // minutes
+
+  // Staff & clinical
+  staffUtilization: integer('staff_utilization').default(0), // percentage 0-100
+  chairUtilization: integer('chair_utilization').default(0), // percentage 0-100
+  ontimePerformance: integer('ontime_performance').default(0), // percentage 0-100
+  treatmentCompletion: integer('treatment_completion').default(0), // percentage 0-100
+
+  // Financials
+  claimsSubmitted: integer('claims_submitted').default(0),
+  claimsDenied: integer('claims_denied').default(0),
+  collectionsAmount: integer('collections_amount').default(0),
+  arCurrent: integer('ar_current').default(0),
+  ar30: integer('ar_30').default(0),
+  ar60: integer('ar_60').default(0),
+  ar90: integer('ar_90').default(0),
+
+  // Benchmarks & forecasting
+  benchmarkScore: integer('benchmark_score').default(0), // 0-100
+  forecastRevenue: integer('forecast_revenue').default(0),
+  forecastPatients: integer('forecast_patients').default(0),
+
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userPractices: many(userPractices),

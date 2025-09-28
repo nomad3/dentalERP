@@ -69,8 +69,9 @@ services:
     restart: unless-stopped
     working_dir: /app
     environment:
-      VITE_API_BASE_URL: http://backend:3001/api
-      VITE_WS_URL: ws://backend:3001
+      # Use relative paths so the browser hits the Vite dev server and it proxies to backend
+      VITE_API_BASE_URL: /api
+      VITE_WS_URL: /socket.io
       VITE_NODE_ENV: development
     ports:
       - "3000:3000"

@@ -44,7 +44,38 @@ export const analyticsAPI = {
     const response = await api.get('/analytics/executive-kpis', {
       params: { practiceIds: practiceIds.join(','), dateRange }
     });
-    return response.data;
+    const body = response.data || {};
+    const raw = body.data || {};
+    // Normalize backend shape to frontend KPI structure expected by widgets
+    const growth = typeof raw.growthRate === 'number' ? raw.growthRate : null;
+    const trend = growth == null ? 'neutral' : growth > 0 ? 'up' : growth < 0 ? 'down' : 'neutral';
+    const normalized = {
+      totalRevenue: {
+        value: typeof raw.revenue === 'number' ? raw.revenue : null,
+        change: growth,
+        trend,
+        source: 'Eaglesoft + DentalIntel',
+      },
+      patientVolume: {
+        value: typeof raw.patients === 'number' ? raw.patients : null,
+        change: null,
+        trend: 'neutral',
+        source: 'Dentrix + DentalIntel',
+      },
+      appointmentEfficiency: {
+        value: typeof raw.efficiency === 'number' ? raw.efficiency : null,
+        change: null,
+        trend: 'neutral',
+        source: 'Dentrix + Scheduling',
+      },
+      profitMargin: {
+        value: typeof raw.profitMargin === 'number' ? raw.profitMargin : null,
+        change: null,
+        trend: 'neutral',
+        source: 'Eaglesoft + ADP',
+      },
+    };
+    return { ...body, data: normalized };
   },
 
   getRevenueAnalytics: async (practiceIds: string[], dateRange: string) => {
@@ -109,6 +140,46 @@ export const analyticsAPI = {
   getStaffProductivity: async (practiceIds: string[], dateRange: string) => {
     const response = await api.get('/analytics/staff-productivity', {
       params: { practiceIds: practiceIds.join(','), dateRange }
+    });
+    return response.data;
+  },
+
+  // Financial overview (AR, collections, claims)
+  getFinancialOverview: async (practiceIds: string[], dateRange: string) => {
+    const response = await api.get('/analytics/financial-overview', {
+      params: { practiceIds: practiceIds.join(','), dateRange }
+    });
+    return response.data;
+  },
+
+  // Scheduling overview (utilization, no-shows, cancellations)
+  getSchedulingOverview: async (practiceIds: string[], dateRange: string) => {
+    const response = await api.get('/analytics/scheduling-overview', {
+      params: { practiceIds: practiceIds.join(','), dateRange }
+    });
+    return response.data;
+  },
+
+  // Retention cohorts
+  getRetentionCohorts: async (practiceIds: string[], months = 6) => {
+    const response = await api.get('/analytics/retention-cohorts', {
+      params: { practiceIds: practiceIds.join(','), months }
+    });
+    return response.data;
+  },
+
+  // Benchmarking
+  getBenchmarking: async (practiceIds: string[], dateRange: string) => {
+    const response = await api.get('/analytics/benchmarking', {
+      params: { practiceIds: practiceIds.join(','), dateRange }
+    });
+    return response.data;
+  },
+
+  // Forecasting
+  getForecasting: async (practiceIds: string[]) => {
+    const response = await api.get('/analytics/forecasting', {
+      params: { practiceIds: practiceIds.join(',') }
     });
     return response.data;
   },

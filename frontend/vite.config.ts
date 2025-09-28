@@ -23,11 +23,12 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        // target backend service inside Docker network
+        target: 'http://backend:3001',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'ws://localhost:3001',
+        target: 'ws://backend:3001',
         ws: true,
         changeOrigin: true,
       },

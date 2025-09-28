@@ -112,6 +112,76 @@ router.get('/operational-insights', async (req, res) => {
   }
 });
 
+// Financial overview (AR, collections, claims)
+router.get('/financial-overview', async (req, res) => {
+  try {
+    const { practiceIds, dateRange } = req.query as { practiceIds?: string | string[]; dateRange?: string };
+    const ids = parsePracticeIds(practiceIds);
+    const service = AnalyticsService.getInstance();
+    const data = await service.getFinancialOverview(ids, dateRange);
+    res.json({ success: true, data, timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Financial overview error:', error);
+    res.status(500).json({ error: 'Failed to fetch financial overview' });
+  }
+});
+
+// Scheduling overview (utilization, no-shows, cancellations, wait time)
+router.get('/scheduling-overview', async (req, res) => {
+  try {
+    const { practiceIds, dateRange } = req.query as { practiceIds?: string | string[]; dateRange?: string };
+    const ids = parsePracticeIds(practiceIds);
+    const service = AnalyticsService.getInstance();
+    const data = await service.getSchedulingOverview(ids, dateRange);
+    res.json({ success: true, data, timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Scheduling overview error:', error);
+    res.status(500).json({ error: 'Failed to fetch scheduling overview' });
+  }
+});
+
+// Retention cohorts
+router.get('/retention-cohorts', async (req, res) => {
+  try {
+    const { practiceIds, months } = req.query as { practiceIds?: string | string[]; months?: string };
+    const ids = parsePracticeIds(practiceIds);
+    const service = AnalyticsService.getInstance();
+    const data = await service.getRetentionCohorts(ids, months ? parseInt(months, 10) : 6);
+    res.json({ success: true, data, timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Retention cohorts error:', error);
+    res.status(500).json({ error: 'Failed to fetch retention cohorts' });
+  }
+});
+
+// Benchmarking
+router.get('/benchmarking', async (req, res) => {
+  try {
+    const { practiceIds, dateRange } = req.query as { practiceIds?: string | string[]; dateRange?: string };
+    const ids = parsePracticeIds(practiceIds);
+    const service = AnalyticsService.getInstance();
+    const data = await service.getBenchmarking(ids, dateRange);
+    res.json({ success: true, data, timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Benchmarking error:', error);
+    res.status(500).json({ error: 'Failed to fetch benchmarking' });
+  }
+});
+
+// Forecasting
+router.get('/forecasting', async (req, res) => {
+  try {
+    const { practiceIds } = req.query as { practiceIds?: string | string[] };
+    const ids = parsePracticeIds(practiceIds);
+    const service = AnalyticsService.getInstance();
+    const data = await service.getForecasting(ids);
+    res.json({ success: true, data, timestamp: new Date().toISOString() });
+  } catch (error) {
+    logger.error('Forecasting error:', error);
+    res.status(500).json({ error: 'Failed to fetch forecasting' });
+  }
+});
+
 router.get('/treatment-outcomes', async (req, res) => {
   try {
     const { providerId, dateRange } = req.query as { providerId?: string; dateRange?: string };

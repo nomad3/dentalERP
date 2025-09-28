@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useBIDashboardUpdates } from '../hooks/useWebSocket';
 import { useAuthStore } from '../store/authStore';
@@ -20,12 +20,65 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     navigate('/auth/login');
   };
 
-  const navigationItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: '📊', roles: ['admin', 'executive', 'manager', 'clinician'] },
-    { name: 'Analytics', href: '/analytics', icon: '📈', roles: ['admin', 'executive', 'manager'] },
-    { name: 'Integrations', href: '/integrations', icon: '🔗', roles: ['admin', 'executive', 'manager'] },
-    { name: 'Settings', href: '/settings', icon: '⚙️', roles: ['admin', 'executive', 'manager', 'clinician'] }
-  ].filter(item => user?.role && item.roles.includes(user.role));
+  type NavItem = {
+    name: string;
+    href?: string;
+    icon?: string;
+    roles?: string[];
+    children?: { name: string; href: string; }[];
+    section?: string;
+  };
+
+  const baseNav: NavItem[] = [
+    { section: 'Overview', name: 'Dashboard', href: '/dashboard', icon: '📊', roles: ['admin', 'executive', 'manager', 'clinician'] },
+    {
+      section: 'Overview',
+      name: 'Analytics',
+      icon: '📈',
+      roles: ['admin', 'executive', 'manager'],
+      href: '/analytics',
+      children: [
+        { name: 'Revenue', href: '/analytics/revenue' },
+        { name: 'Patients', href: '/analytics/patients' },
+        { name: 'Staff', href: '/analytics/staff' },
+        { name: 'Clinical', href: '/analytics/clinical' },
+        { name: 'Financial', href: '/analytics/financial' },
+        { name: 'Scheduling', href: '/analytics/scheduling' },
+        { name: 'Retention', href: '/analytics/retention' },
+        { name: 'Benchmarking', href: '/analytics/benchmarking' },
+        { name: 'Forecasting', href: '/analytics/forecasting' },
+        { name: 'Reports', href: '/analytics/reports' },
+      ],
+    },
+    { section: 'Operations', name: 'Patients', href: '/patients', icon: '🧑‍⚕️', roles: ['admin', 'executive', 'manager', 'clinician'] },
+    { section: 'Operations', name: 'Appointments', href: '/appointments', icon: '🗓️', roles: ['admin', 'executive', 'manager', 'clinician'] },
+    { section: 'Operations', name: 'Practices', href: '/practices', icon: '🏢', roles: ['admin', 'executive', 'manager'] },
+    { section: 'System', name: 'Integrations', href: '/integrations', icon: '🔗', roles: ['admin', 'executive', 'manager'] },
+    { section: 'System', name: 'Settings', href: '/settings', icon: '⚙️', roles: ['admin', 'executive', 'manager', 'clinician'] },
+  ];
+
+  const navigationBySection = useMemo(() => {
+    const role = user?.role;
+    const filtered = baseNav.filter(i => !i.roles || (role && i.roles.includes(role)));
+    const sections: Record<string, NavItem[]> = {};
+    for (const item of filtered) {
+      const key = item.section || 'General';
+      sections[key] = sections[key] || [];
+      sections[key].push(item);
+    }
+    return sections;
+  }, [user?.role]);
+
+  // Track collapsed state per section (persist to localStorage)
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    const stored = localStorage.getItem('sidebar:openSections');
+    if (stored) setOpenSections(JSON.parse(stored));
+  }, []);
+  useEffect(() => {
+    localStorage.setItem('sidebar:openSections', JSON.stringify(openSections));
+  }, [openSections]);
+  const toggleSection = (key: string) => setOpenSections(s => ({ ...s, [key]: !s[key] }));
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,29 +168,82 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
             {/* Navigation items */}
             <div className="flex-1 p-4">
-              <ul className="space-y-2">
-                {navigationItems.map((item) => {
-                  const isActive = location.pathname === item.href;
-                  return (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        onClick={() => setSidebarOpen(false)}
-                        className={`
-                          flex items-center space-x-3 px-4 py-2 rounded-md text-sm font-medium transition-colors
-                          ${isActive
-                            ? 'bg-primary-100 text-primary-700 border-primary-200'
-                            : 'text-gray-700 hover:bg-gray-100'
+              {Object.entries(navigationBySection).map(([section, items]) => {
+                const open = openSections[section] ?? true;
+                return (
+                  <div key={section} className="mb-4">
+                    <button
+                      onClick={() => toggleSection(section)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-600 uppercase tracking-wide hover:bg-gray-50 rounded"
+                      aria-expanded={open}
+                    >
+                      <span>{section}</span>
+                      <span className={`transition-transform ${open ? 'rotate-90' : ''}`}>▸</span>
+                    </button>
+
+                    {open && (
+                      <ul className="mt-1 space-y-1">
+                        {items.map((item) => {
+                          const isParentActive = item.href && (location.pathname === item.href || location.pathname.startsWith(item.href + '/'));
+                          if (item.children && item.children.length) {
+                            return (
+                              <li key={item.name}>
+                                <div className={`flex items-center justify-between px-4 py-2 rounded-md text-sm font-medium ${isParentActive ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                  <Link
+                                    to={item.href!}
+                                    onClick={() => setSidebarOpen(false)}
+                                    className="flex items-center space-x-3 flex-1"
+                                    aria-current={isParentActive ? 'page' : undefined}
+                                  >
+                                    <span className="text-lg">{item.icon}</span>
+                                    <span>{item.name}</span>
+                                  </Link>
+                                </div>
+                                {/* Child links */}
+                                <ul className="ml-10 mt-1 space-y-1">
+                                  {item.children.map((child) => {
+                                    const childActive = location.pathname === child.href;
+                                    return (
+                                      <li key={child.name}>
+                                        <Link
+                                          to={child.href}
+                                          onClick={() => setSidebarOpen(false)}
+                                          className={`block px-2 py-1 rounded text-sm ${childActive ? 'text-primary-700 bg-primary-50' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                          aria-current={childActive ? 'page' : undefined}
+                                        >
+                                          {child.name}
+                                        </Link>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </li>
+                            );
                           }
-                        `}
-                      >
-                        <span className="text-lg">{item.icon}</span>
-                        <span>{item.name}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+
+                          // Simple link
+                          return (
+                            <li key={item.name}>
+                              <Link
+                                to={item.href!}
+                                onClick={() => setSidebarOpen(false)}
+                                className={`
+                                  flex items-center space-x-3 px-4 py-2 rounded-md text-sm font-medium transition-colors
+                                  ${isParentActive ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-100'}
+                                `}
+                                aria-current={isParentActive ? 'page' : undefined}
+                              >
+                                {item.icon && <span className="text-lg">{item.icon}</span>}
+                                <span>{item.name}</span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Sidebar footer - Integration status */}

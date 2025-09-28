@@ -57,6 +57,82 @@ async function main() {
       );
     `);
 
+    // BI Daily Metrics table for aggregated analytics (synthetic/demo-friendly)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS bi_daily_metrics (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        practice_id uuid NOT NULL REFERENCES practices(id) ON DELETE CASCADE,
+        location_id uuid REFERENCES locations(id),
+        date timestamptz NOT NULL,
+
+        revenue integer DEFAULT 0,
+        target_revenue integer DEFAULT 0,
+        new_patients integer DEFAULT 0,
+        returning_patients integer DEFAULT 0,
+
+        schedule_utilization integer DEFAULT 0,
+        no_shows integer DEFAULT 0,
+        cancellations integer DEFAULT 0,
+        avg_wait_time integer DEFAULT 0,
+
+        staff_utilization integer DEFAULT 0,
+        chair_utilization integer DEFAULT 0,
+        ontime_performance integer DEFAULT 0,
+        treatment_completion integer DEFAULT 0,
+
+        claims_submitted integer DEFAULT 0,
+        claims_denied integer DEFAULT 0,
+        collections_amount integer DEFAULT 0,
+        ar_current integer DEFAULT 0,
+        ar_30 integer DEFAULT 0,
+        ar_60 integer DEFAULT 0,
+        ar_90 integer DEFAULT 0,
+
+        benchmark_score integer DEFAULT 0,
+        forecast_revenue integer DEFAULT 0,
+        forecast_patients integer DEFAULT 0,
+
+        created_at timestamptz NOT NULL DEFAULT now(),
+        updated_at timestamptz NOT NULL DEFAULT now()
+      );
+    `);
+
+    // Align patients table with full schema used by Drizzle ORM/seed
+    // Add missing advanced columns in an idempotent way
+    await client.query(`
+      ALTER TABLE patients
+        ADD COLUMN IF NOT EXISTS external_id varchar(100),
+        ADD COLUMN IF NOT EXISTS date_of_birth timestamp,
+        ADD COLUMN IF NOT EXISTS gender varchar(20),
+        ADD COLUMN IF NOT EXISTS address jsonb,
+        ADD COLUMN IF NOT EXISTS emergency_contact jsonb,
+        ADD COLUMN IF NOT EXISTS insurance jsonb NOT NULL DEFAULT '[]'::jsonb,
+        ADD COLUMN IF NOT EXISTS medical_history jsonb NOT NULL DEFAULT '{}'::jsonb,
+        ADD COLUMN IF NOT EXISTS dental_history jsonb NOT NULL DEFAULT '{}'::jsonb,
+        ADD COLUMN IF NOT EXISTS notes text,
+        ADD COLUMN IF NOT EXISTS last_visit timestamp,
+        ADD COLUMN IF NOT EXISTS next_appointment timestamp;
+    `);
+
+    // Align appointments table with Drizzle schema (adds optional columns used by seed/API)
+    await client.query(`
+      ALTER TABLE appointments
+        ADD COLUMN IF NOT EXISTS external_id varchar(100),
+        ADD COLUMN IF NOT EXISTS actual_start timestamp,
+        ADD COLUMN IF NOT EXISTS actual_end timestamp,
+        ADD COLUMN IF NOT EXISTS check_in_time timestamp,
+        ADD COLUMN IF NOT EXISTS wait_time integer,
+        ADD COLUMN IF NOT EXISTS room_number varchar(20),
+        ADD COLUMN IF NOT EXISTS notes text;
+    `);
+
+    // Align integrations table to include optional sync metadata
+    await client.query(`
+      ALTER TABLE integrations
+        ADD COLUMN IF NOT EXISTS last_sync timestamptz,
+        ADD COLUMN IF NOT EXISTS last_error text;
+    `);
+
     await client.query('COMMIT');
     console.log('✅ Migration completed');
   } catch (e) {
