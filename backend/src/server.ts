@@ -28,6 +28,8 @@ import patientRoutes from './routes/patients';
 import practiceRoutes from './routes/practices';
 import userRoutes from './routes/users';
 import widgetRoutes from './routes/widgets';
+import analyticsRoutes from './routes/analytics';
+import reportRoutes from './routes/reports';
 
 // Import services
 import { DatabaseService } from './services/database';
@@ -150,6 +152,7 @@ app.use('/api/appointments', authMiddleware, auditMiddleware, appointmentRoutes)
 app.use('/api/users', authMiddleware, auditMiddleware, userRoutes);
 app.use('/api/widgets', authMiddleware, auditMiddleware, widgetRoutes);
 app.use('/api/analytics', authMiddleware, auditMiddleware, analyticsRoutes);
+app.use('/api/reports', authMiddleware, auditMiddleware, reportRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
