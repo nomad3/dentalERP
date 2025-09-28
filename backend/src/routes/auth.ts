@@ -15,11 +15,20 @@ router.post('/login', async (req, res) => {
     if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
 
     const db = DatabaseService.getInstance().getDb();
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+  const [user] = await db.select().from(users).where(eq(users.email, email));
+  if (process.env.DEBUG_MODE === 'true') {
+    logger.info(`Login debug: email=${email}, userFound=${!!user}`);
+    if (user) {
+      logger.info(`Login debug: hashHead=${String(user.passwordHash).slice(0,7)}`);
+    }
+  }
+  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (process.env.DEBUG_MODE === 'true') {
+    logger.info(`Login debug: compare=${ok}, pwLen=${typeof password==='string'?password.length:-1}`);
+  }
+  if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
 
     const ups = await db.select().from(userPractices).where(eq(userPractices.userId, user.id));
     const practiceIds = ups.map((up: any) => up.practiceId);

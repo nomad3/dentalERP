@@ -1,4 +1,5 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { eq } from 'drizzle-orm';
 import { Pool } from 'pg';
 import * as schema from '../database/schema';
 import { logger } from '../utils/logger';
@@ -65,36 +66,56 @@ export class DatabaseService {
 
   // User methods (placeholder implementations)
   async createUser(userData: any): Promise<any> {
-    // Placeholder - would implement with Drizzle ORM
     logger.info('Creating user:', userData.email);
-    return { id: 'mock-user-id', ...userData };
+    const [inserted] = await this.db
+      .insert(schema.users)
+      .values(userData)
+      .returning();
+    return inserted;
   }
 
   async findUserByEmail(email: string): Promise<any> {
-    // Placeholder - would query database
     logger.info('Finding user by email:', email);
-    return null;
+    const rows = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, email))
+      .limit(1);
+    return rows[0] ?? null;
   }
 
   async findUserById(id: string): Promise<any> {
-    // Placeholder - would query database
     logger.info('Finding user by ID:', id);
-    return null;
+    const rows = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, id))
+      .limit(1);
+    return rows[0] ?? null;
   }
 
   async updateUserLastLogin(userId: string): Promise<void> {
-    // Placeholder - would update database
     logger.info('Updating last login for user:', userId);
+    await this.db
+      .update(schema.users)
+      .set({ lastLogin: new Date(), updatedAt: new Date() })
+      .where(eq(schema.users.id, userId));
   }
 
   async updateUserPassword(userId: string, passwordHash: string): Promise<void> {
-    // Placeholder - would update database
     logger.info('Updating password for user:', userId);
+    await this.db
+      .update(schema.users)
+      .set({ passwordHash, updatedAt: new Date() })
+      .where(eq(schema.users.id, userId));
   }
 
   async getUserPractices(userId: string): Promise<any[]> {
-    // Placeholder - would query user_practices table
     logger.info('Getting user practices for:', userId);
-    return [];
+    const rows = await this.db
+      .select()
+      .from(schema.userPractices)
+      .where(eq(schema.userPractices.userId, userId));
+    return rows;
   }
 }
