@@ -91,4 +91,85 @@ router.get('/integration-status', async (req, res) => {
   }
 });
 
+// Additional BI endpoints used by frontend hooks (stubs for MVP)
+router.get('/operational-insights', async (req, res) => {
+  try {
+    const { practiceId, dateRange } = req.query as { practiceId?: string; dateRange?: string };
+    logger.info('Operational insights requested', { practiceId, dateRange });
+    res.json({
+      success: true,
+      data: {
+        scheduleUtilization: 87.4,
+        avgWaitTime: 11,
+        cancellations: 3,
+        confirmationsPending: 5
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Operational insights error:', error);
+    res.status(500).json({ error: 'Failed to fetch operational insights' });
+  }
+});
+
+router.get('/treatment-outcomes', async (req, res) => {
+  try {
+    const { providerId, dateRange } = req.query as { providerId?: string; dateRange?: string };
+    logger.info('Treatment outcomes requested', { providerId, dateRange });
+    res.json({
+      success: true,
+      data: {
+        preventiveCare: { successRate: 92, volume: 45 },
+        restorative: { successRate: 88, volume: 32 },
+        surgical: { successRate: 95, volume: 18 }
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Treatment outcomes error:', error);
+    res.status(500).json({ error: 'Failed to fetch treatment outcomes' });
+  }
+});
+
+router.get('/patient-acquisition', async (req, res) => {
+  try {
+    const { practiceIds, dateRange } = req.query as { practiceIds?: string | string[]; dateRange?: string };
+    logger.info('Patient acquisition requested', { practiceIds, dateRange });
+    res.json({
+      success: true,
+      data: {
+        referrals: 42,
+        marketing: 58,
+        walkIns: 16,
+        total: 116,
+        trend: 'up'
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Patient acquisition error:', error);
+    res.status(500).json({ error: 'Failed to fetch patient acquisition' });
+  }
+});
+
+router.get('/staff-productivity', async (req, res) => {
+  try {
+    const { practiceIds, dateRange } = req.query as { practiceIds?: string | string[]; dateRange?: string };
+    logger.info('Staff productivity requested', { practiceIds, dateRange });
+    res.json({
+      success: true,
+      data: {
+        utilization: 91.7,
+        avgAppointmentsPerProvider: 14,
+        overtimeHours: 6,
+        remoteStaff: 2
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error('Staff productivity error:', error);
+    res.status(500).json({ error: 'Failed to fetch staff productivity' });
+  }
+});
+
 export default router;
