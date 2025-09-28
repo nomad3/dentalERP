@@ -9,6 +9,19 @@ A comprehensive dental practice management system with multi-practice support, e
 
 ## 🎯 Overview
 
+### Quick Links
+- `documentation/technical-specification.md`: Full architecture and API details
+- `documentation/style-guide.md`: Code, naming, and UX style rules
+- `documentation/accessibility-compliance.md`: WCAG 2.1 AA compliance
+- `design-system/components/navigation.md`: Navigation patterns and specs
+- `design-system/components/dashboard-widget.md`: Widget system and guidelines
+- `design-system/tokens/colors.json`: Color palette tokens
+- `design-system/tokens/spacing.json`: Spacing scale tokens
+- `design-system/tokens/typography.json`: Typography tokens
+- `wireframes/executive-dashboard/layout.md`: Executive dashboard wireframe
+- `wireframes/manager-dashboard/layout.md`: Manager dashboard wireframe
+- `BI_FEATURES_COMPLETE.md`: End‑to‑end BI features and use cases
+
 This full-stack application provides a unified interface for multi-location dental practices, enabling seamless navigation between integrated systems (Dentrix, DentalIntel, ADP, Eaglesoft) while maintaining each platform's core functionality.
 
 ### ✨ Key Features
@@ -117,6 +130,21 @@ dentalERP/
 └── 📋 test-setup.sh            # URL testing script
 ```
 
+### Environment Variables
+- `NODE_ENV`: Node runtime environment (default: `development`)
+- `PORT`: Backend port (default: `3001` via compose)
+- `FRONTEND_URL`: CORS allow‑origin (default: `http://localhost:3000`)
+- `DATABASE_URL`: PostgreSQL connection string (compose service)
+- `REDIS_URL`: Redis connection string (compose service)
+- `JWT_SECRET`: JWT signing secret (auth service)
+- `JWT_EXPIRES_IN`: Access token TTL (e.g., `15m`)
+- `REFRESH_TOKEN_EXPIRES_IN`: Refresh token TTL (e.g., `7d`)
+- `LOG_LEVEL`: winston log level (e.g., `info`)
+- `ANALYTICS_CACHE_TTL`: Analytics cache TTL seconds (default `30`)
+- `npm_package_version`: auto‑injected for health output
+
+See `docker-compose.yml` and backend config for defaults.
+
 ## 🧪 Testing & URLs
 
 ### 🚀 Current Status (Docker-based)
@@ -148,6 +176,15 @@ docker exec dentalerp-redis-1 redis-cli ping      # Redis cache
 - **Integrations**: `http://localhost:3000/integrations` - External system status ⏳
 
 **Status**: Frontend still compiling (SWC + Alpine ARM64 compatibility)
+
+### Sample Analytics Endpoints
+Protected routes require `Authorization: Bearer <token>`:
+- `GET /api/analytics/revenue-trends?practiceIds=p1,p2&dateRange=6m`
+- `GET /api/analytics/location-performance?practiceIds=p1&dateRange=30d`
+- `GET /api/analytics/manager-metrics?practiceId=p1&date=today`
+- `GET /api/analytics/clinical-metrics?providerId=u1&dateRange=30d`
+- `GET /api/integrations/status`
+- `POST /api/reports/generate` with `{ type, dateRange }`
 
 ## 👥 User Personas & Dashboards
 
@@ -252,6 +289,12 @@ curl -s http://localhost:3001/api/dashboard \
   -H "Authorization: Bearer <token>"
 ```
 
+### Local Development (without Docker)
+If you prefer to run services locally:
+- Backend: `cd backend && npm install && npm run dev`
+- Frontend: `cd frontend && npm install && npm run dev`
+- Postgres/Redis: use local services or run only infra via Docker: `docker-compose up postgres redis -d`
+
 ## 📚 Documentation
 
 ### Comprehensive Specifications
@@ -266,6 +309,43 @@ curl -s http://localhost:3001/api/dashboard \
 2. **Test**: `./test-setup.sh` - Validate all services and URLs
 3. **Develop**: Modify code with hot reloading in Docker containers
 4. **Deploy**: Use GitHub Actions CI/CD pipeline for staging and production
+
+### BI Features Summary
+For the full breakdown see `BI_FEATURES_COMPLETE.md`. Highlights:
+- Executive KPIs: multi‑location revenue, growth, targets, benchmarking
+- Manager Ops: daily schedule, conflicts, confirmations, staff utilization
+- Clinical Metrics: treatment outcomes, success rates, satisfaction
+- Integrations Health: Dentrix, DentalIntel, ADP, Eaglesoft status
+- Reports: on‑demand and scheduled, multiple export formats
+
+## 🧭 Backend Routes Overview
+- Auth (public): `/api/auth/*`
+- Dashboard: `/api/dashboard/*`
+- Practices: `/api/practices/*`
+- Locations: `/api/locations/*`
+- Integrations: `/api/integrations/*`
+- Patients: `/api/patients/*`
+- Appointments: `/api/appointments/*`
+- Users: `/api/users/*`
+- Widgets: `/api/widgets/*`
+- Analytics: `/api/analytics/*`
+- Reports: `/api/reports/*`
+
+See `backend/src/routes/*.ts` for handlers and examples.
+
+## 🤝 Contributing
+- Follow `documentation/style-guide.md` and use conventional commits
+- Ensure accessibility per `documentation/accessibility-compliance.md`
+- Update specs in `design-system/components/` when changing UI
+- Reflect layout changes in wireframes under `wireframes/*/layout.md`
+
+## 🔐 Security & Compliance
+- HIPAA‑conscious data handling (no PHI in logs; use field‑level encryption where applicable)
+- Security middleware: Helmet (CSP), CORS, rate limiting, audit logging
+- Least privilege roles: Executive, Manager, Clinician, Staff
+
+## 📄 License
+MIT — see `package.json` for details
 
 ## 🔍 Troubleshooting
 

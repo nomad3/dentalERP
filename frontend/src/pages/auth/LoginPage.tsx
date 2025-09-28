@@ -13,22 +13,38 @@ const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Mock login for BI dashboard access
-      const mockUser = {
-        id: 'user-123',
-        email: credentials.email,
-        firstName: 'John',
-        lastName: 'Doe',
-        role: credentials.email.includes('executive') ? 'executive' as const : 'manager' as const,
-        practiceIds: ['practice-1', 'practice-2'],
+      // Real authentication with backend API
+      const response = await fetch('http://localhost:3001/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+
+      // Set user data in store
+      const user = {
+        id: data.user.id,
+        email: data.user.email,
+        firstName: data.user.firstName || 'Demo',
+        lastName: data.user.lastName || 'User',
+        role: data.user.role,
+        practiceIds: ['practice-1', 'practice-2'], // Mock practice IDs
         currentPracticeId: 'practice-1'
       };
 
-      setUser(mockUser);
-      setTokens('mock-jwt-token', 'mock-refresh-token');
+      setUser(user);
+      setTokens(data.accessToken, data.refreshToken);
       navigate('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
+      alert('Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
