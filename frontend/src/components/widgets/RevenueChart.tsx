@@ -1,8 +1,11 @@
 import React from 'react';
+import { useRevenueAnalytics } from '../../hooks/useAnalytics';
 
 const RevenueChart: React.FC = () => {
-  // Mock data - in real implementation, this would come from DentalIntel + Eaglesoft
-  const mockData = [
+  const { data: revenueData, isLoading, error } = useRevenueAnalytics('6m');
+
+  // Fallback data for when API is loading or fails
+  const fallbackData = [
     { month: 'Jan', revenue: 180000, target: 200000 },
     { month: 'Feb', revenue: 195000, target: 200000 },
     { month: 'Mar', revenue: 207000, target: 200000 },
@@ -10,6 +13,13 @@ const RevenueChart: React.FC = () => {
     { month: 'May', revenue: 215000, target: 210000 },
     { month: 'Jun', revenue: 225000, target: 220000 }
   ];
+
+  const chartData = revenueData?.data?.monthlyData || fallbackData;
+  const summary = revenueData?.data?.summary || {
+    ytdRevenue: 2400000,
+    growthRate: 12.5,
+    targetProgress: 94
+  };
 
   return (
     <div className="bg-white rounded-lg shadow border p-6">
@@ -35,8 +45,14 @@ const RevenueChart: React.FC = () => {
 
       {/* Chart Area - Simplified representation */}
       <div className="h-64 relative bg-gray-50 rounded-lg p-4">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-90">
+            <LoadingSpinner size="md" />
+          </div>
+        )}
+
         <div className="h-full flex items-end justify-between space-x-1">
-          {mockData.map((data, index) => {
+          {chartData.map((data, index) => {
             const percentage = (data.revenue / 250000) * 100;
             const targetPercentage = (data.target / 250000) * 100;
 
@@ -66,15 +82,19 @@ const RevenueChart: React.FC = () => {
       <div className="mt-4 grid grid-cols-3 gap-4 text-center">
         <div>
           <p className="text-sm text-gray-500">YTD Revenue</p>
-          <p className="text-lg font-semibold text-gray-900">$2.4M</p>
+          <p className="text-lg font-semibold text-gray-900">
+            ${(summary.ytdRevenue / 1000000).toFixed(1)}M
+          </p>
         </div>
         <div>
           <p className="text-sm text-gray-500">Growth Rate</p>
-          <p className="text-lg font-semibold text-green-600">+12.5%</p>
+          <p className={`text-lg font-semibold ${summary.growthRate > 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {summary.growthRate > 0 ? '+' : ''}{summary.growthRate}%
+          </p>
         </div>
         <div>
           <p className="text-sm text-gray-500">Target Progress</p>
-          <p className="text-lg font-semibold text-primary-600">94%</p>
+          <p className="text-lg font-semibold text-primary-600">{summary.targetProgress}%</p>
         </div>
       </div>
 

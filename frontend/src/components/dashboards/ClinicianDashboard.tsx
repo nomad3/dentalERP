@@ -147,4 +147,4 @@ const ClinicianDashboard: React.FC = () => {
   );
 };
 
-export default ManagerDashboard;
+export default ClinicianDashboard;
