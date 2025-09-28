@@ -61,7 +61,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: sh -c "npm install && npx tsx watch src/server.ts"
+    command: sh -c "npm install && npm run db:generate && npm run db:push && npx tsx watch src/server.ts"
 
   # Frontend Application
   frontend:
@@ -72,6 +72,7 @@ services:
       # Use relative paths so the browser hits the Vite dev server and it proxies to backend
       VITE_API_BASE_URL: /api
       VITE_WS_URL: /socket.io
+      VITE_PROXY_TARGET: http://backend:3001
       VITE_NODE_ENV: development
     ports:
       - "3000:3000"

@@ -20,7 +20,8 @@ export const useWebSocket = (options: WebSocketOptions = {}) => {
   useEffect(() => {
     if (!user || !accessToken) return;
 
-    const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
+    // Prefer relative default so Vite dev proxy can handle WS in all envs
+    const WS_URL = import.meta.env.VITE_WS_URL || '/socket.io';
 
     socketRef.current = io(WS_URL, {
       auth: {

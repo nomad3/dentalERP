@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ingestionAPI, practiceAPI } from '../../services/api';
+import { TARGET_FIELDS, suggestFieldMap, isFieldMapComplete } from '../../features/ingestion/mapping';
 
 const ManualIngestionPage: React.FC = () => {
   const [practices, setPractices] = useState<any[]>([]);
@@ -13,8 +14,10 @@ const ManualIngestionPage: React.FC = () => {
   const [selectedJobId, setSelectedJobId] = useState<string>('');
   const [headers, setHeaders] = useState<string[]>([]);
   const [target, setTarget] = useState<string>('patients');
-  const [fieldMap, setFieldMap] = useState<Record<string,string>>({
-    externalId: '', firstName: '', lastName: '', email: '', phone: '', dateOfBirth: '', gender: '', notes: ''
+  const [fieldMap, setFieldMap] = useState<Record<string,string>>(() => {
+    const defaults: Record<string, string> = {};
+    TARGET_FIELDS.patients.forEach(k => defaults[k] = '');
+    return defaults;
   });
 
   useEffect(() => {
@@ -61,6 +64,13 @@ const ManualIngestionPage: React.FC = () => {
     await loadHeaders(jobId);
   };
 
+  // Auto-suggest mapping whenever headers/source/dataset change
+  useEffect(() => {
+    if (!headers.length) return;
+    const suggested = suggestFieldMap(headers, sourceSystem as any, dataset as any, 'patients');
+    setFieldMap(prev => ({ ...prev, ...suggested }));
+  }, [headers, sourceSystem, dataset]);
+
   const handleSaveMapping = async () => {
     if (!selectedJobId) return;
     const job = jobs.find(j => j.id === selectedJobId);
@@ -77,6 +87,10 @@ const ManualIngestionPage: React.FC = () => {
 
   const handlePromote = async () => {
     if (!selectedJobId) return;
+    if (!isFieldMapComplete(fieldMap, 'patients')) {
+      alert('Please map required fields: firstName and lastName');
+      return;
+    }
     const res = await ingestionAPI.promote(selectedJobId, { target, fieldMap });
     await loadJobs();
     alert(`Promote: ${JSON.stringify(res?.result || res)}`);
@@ -140,7 +154,8 @@ const ManualIngestionPage: React.FC = () => {
 
           {/* Mapping UI */}
           <div className="mt-8">
-            <h3 className="text-md font-medium text-gray-900 mb-3">Map Fields</h3>
+            <h3 className="text-md font-medium text-gray-900 mb-1">Map Fields</h3>
+            <div className="text-xs text-gray-600 mb-3">Auto-mapped using common {sourceSystem} {dataset} headers. Required: firstName, lastName.</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm text-gray-700 mb-1">Select Job</label>
@@ -156,6 +171,20 @@ const ManualIngestionPage: React.FC = () => {
                 <select value={target} onChange={e => setTarget(e.target.value)} className="w-full border rounded-md px-3 py-2">
                   <option value="patients">Patients</option>
                 </select>
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!headers.length) return;
+                    const suggested = suggestFieldMap(headers, sourceSystem as any, dataset as any, 'patients');
+                    setFieldMap(prev => ({ ...prev, ...suggested }));
+                  }}
+                  className="px-3 py-2 h-10 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 disabled:opacity-50"
+                  disabled={!headers.length}
+                >
+                  Auto-map
+                </button>
               </div>
             </div>
 
@@ -173,15 +202,18 @@ const ManualIngestionPage: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-4 flex space-x-2">
+            <div className="mt-4 flex items-center space-x-2">
               <button onClick={handleSaveMapping} disabled={!selectedJobId}
                 className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 disabled:opacity-50">
                 Save Mapping
               </button>
-              <button onClick={handlePromote} disabled={!selectedJobId}
+              <button onClick={handlePromote} disabled={!selectedJobId || !isFieldMapComplete(fieldMap, 'patients')}
                 className="px-3 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:opacity-50">
                 Promote to {target}
               </button>
+              {!isFieldMapComplete(fieldMap, 'patients') && (
+                <span className="text-xs text-red-600">Required fields missing</span>
+              )}
             </div>
           </div>
         </div>

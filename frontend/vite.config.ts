@@ -23,12 +23,12 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        // target backend service inside Docker network
-        target: 'http://backend:3001',
+        // Use env override when running outside Docker
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:3001',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'ws://backend:3001',
+        target: process.env.VITE_PROXY_TARGET || 'http://localhost:3001',
         ws: true,
         changeOrigin: true,
       },
