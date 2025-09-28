@@ -12,6 +12,7 @@ const PatientsPage = React.lazy(() => import('./pages/patients/PatientsPage'));
 const AppointmentsPage = React.lazy(() => import('./pages/appointments/AppointmentsPage'));
 const PracticesPage = React.lazy(() => import('./pages/practices/PracticesPage'));
 const IntegrationsPage = React.lazy(() => import('./pages/integrations/IntegrationsPage'));
+const ManualIngestionPage = React.lazy(() => import('./pages/integrations/ManualIngestionPage'));
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
@@ -144,7 +145,10 @@ function App() {
               element={
                 <ProtectedRoute roles={['admin', 'executive', 'manager']}>
                   <DashboardLayout>
-                    <IntegrationsPage />
+                    <Routes>
+                      <Route path="" element={<IntegrationsPage />} />
+                      <Route path="ingestion" element={<React.Suspense fallback={<div />}> <ManualIngestionPage /> </React.Suspense>} />
+                    </Routes>
                   </DashboardLayout>
                 </ProtectedRoute>
               }

@@ -174,6 +174,86 @@ docker exec dentalerp-redis-1 redis-cli ping      # Redis cache
 - **Patients**: `http://localhost:3000/patients` - Patient management interface ⏳
 - **Appointments**: `http://localhost:3000/appointments` - Scheduling system ⏳
 - **Integrations**: `http://localhost:3000/integrations` - External system status ⏳
+  - Manual Ingestion (CSV/PDF): `http://localhost:3000/integrations/ingestion`
+    - Backend endpoints under `/api/integrations/ingestion/*`. See `documentation/manual-ingestion.md`.
+
+## 📥 Manual Data Ingestion (CSV/PDF/JSON/TXT)
+
+When direct integrations (Dentrix, DentalIntel, ADP, Eaglesoft) aren’t available, you can manually upload data files and parse them into staging, then promote into domain tables.
+
+### Setup
+
+```bash
+# Rebuild backend to install new deps (multer, pdf-parse, csv-parse)
+docker compose up --build -d backend
+
+# Or locally
+cd backend && npm i
+
+# Generate + apply Drizzle schema (adds ingestion tables)
+cd backend
+npm run db:generate
+npm run db:push
+```
+
+Optional: set upload directory with `INGESTION_UPLOAD_DIR` (defaults to `backend/uploads`).
+
+### Frontend Flow
+- Navigate to `/integrations/ingestion`.
+- Upload file → Process → Map CSV headers to target fields → Promote.
+- For now, promotion supports Patients. Appointments promotion can be added with your CSV shape.
+
+### Backend Endpoints (under `/api/integrations`)
+- `GET /ingestion/supported` — Accepted file types and limits
+- `POST /ingestion/upload` — multipart; fields: `practiceId`, `sourceSystem`, `dataset?`, `file`
+- `POST /ingestion/jobs/:id/process` — Parse file and stage records
+- `GET /ingestion/jobs` — List jobs (optional `practiceId`)
+- `GET /ingestion/jobs/:id` — Job details
+- `GET /ingestion/jobs/:id/records` — Staged records preview (paginated)
+- `GET /ingestion/jobs/:id/headers` — Source headers (for mapping)
+- `POST /ingestion/jobs/:id/map` — Save a mapping template (`practiceId`, `sourceSystem`, `dataset`, `target`, `fieldMap`)
+- `POST /ingestion/jobs/:id/promote` — Promote staged records to target (supports `patients`)
+- `POST /ingestion/jobs/:id/cancel` — Mark job as cancelled
+- `DELETE /ingestion/jobs/:id` — Delete job + staged records
+- `GET /ingestion/jobs/:id/download` — Download raw uploaded file
+
+All routes require auth (`Authorization: Bearer <token>`).
+
+### Example cURL Flow
+
+```bash
+# 1) Upload
+curl -H "Authorization: Bearer $TOKEN" \
+  -F practiceId=$PRACTICE_ID \
+  -F sourceSystem=dentrix \
+  -F dataset=patients \
+  -F file=@/path/to/file.csv \
+  http://localhost:3001/api/integrations/ingestion/upload
+
+# 2) Process
+curl -H "Authorization: Bearer $TOKEN" \
+  -X POST http://localhost:3001/api/integrations/ingestion/jobs/$JOB_ID/process
+
+# 3) Get headers for mapping
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:3001/api/integrations/ingestion/jobs/$JOB_ID/headers
+
+# 4) Promote (Patients)
+curl -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "target":"patients",
+        "fieldMap":{
+          "externalId":"ExtID",
+          "firstName":"First",
+          "lastName":"Last",
+          "email":"Email",
+          "phone":"Phone",
+          "dateOfBirth":"DOB"
+        }
+      }' \
+  http://localhost:3001/api/integrations/ingestion/jobs/$JOB_ID/promote
+```
 
 **Status**: Frontend still compiling (SWC + Alpine ARM64 compatibility)
 

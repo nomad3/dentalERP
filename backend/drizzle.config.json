@@ -1,9 +1,0 @@
-{
-  "$schema": "https://drizzle.team/drizzle.config.schema.json",
-  "driver": "pg",
-  "schema": "./src/database/schema.ts",
-  "out": "./drizzle",
-  "dbCredentials": {
-    "connectionString": "postgresql://postgres:postgres@postgres:5432/dental_erp_dev"
-  }
-}

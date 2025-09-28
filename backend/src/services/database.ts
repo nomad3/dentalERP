@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { Pool } from 'pg';
 import * as schema from '../database/schema';
 import { logger } from '../utils/logger';
+import { ensureCoreTables } from '../database/ensure';
 
 export class DatabaseService {
   private static instance: DatabaseService;
@@ -32,6 +33,10 @@ export class DatabaseService {
       // Test connection
       await this.pool.query('SELECT NOW()');
       logger.info('Database connected successfully');
+
+      // Lightweight ensure of core tables/columns for resilience
+      await ensureCoreTables(this.pool);
+      logger.info('Core database tables ensured');
     } catch (error) {
       logger.error('Database connection failed:', error);
       throw error;

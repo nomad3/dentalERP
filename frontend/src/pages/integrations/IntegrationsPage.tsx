@@ -131,6 +131,19 @@ const IntegrationsPage: React.FC = () => {
         })}
       </div>
 
+      {/* Manual Ingestion CTA */}
+      <div className="bg-white rounded-lg shadow border p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Need data without a live integration?</h3>
+            <p className="text-sm text-gray-600">Upload CSV or PDF and we’ll parse it.</p>
+          </div>
+          <a href="/integrations/ingestion" className="px-4 py-2 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200">
+            Manual Ingestion
+          </a>
+        </div>
+      </div>
+
       {/* BI Data Flow Visualization */}
       <div className="bg-white rounded-lg shadow border p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Business Intelligence Data Flow</h3>

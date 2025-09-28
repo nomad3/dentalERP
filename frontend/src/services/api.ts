@@ -156,3 +156,68 @@ export const practiceAPI = {
 };
 
 export default api;
+
+// Manual ingestion API
+export const ingestionAPI = {
+  getSupported: async () => {
+    const response = await api.get('/integrations/ingestion/supported');
+    return response.data;
+  },
+
+  upload: async (params: { practiceId: string; sourceSystem: string; dataset?: string; file: File; }) => {
+    const form = new FormData();
+    form.append('practiceId', params.practiceId);
+    form.append('sourceSystem', params.sourceSystem);
+    if (params.dataset) form.append('dataset', params.dataset);
+    form.append('file', params.file);
+    const response = await api.post('/integrations/ingestion/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  processJob: async (jobId: string) => {
+    const response = await api.post(`/integrations/ingestion/jobs/${jobId}/process`);
+    return response.data;
+  },
+
+  listJobs: async (practiceId?: string) => {
+    const response = await api.get('/integrations/ingestion/jobs', { params: practiceId ? { practiceId } : undefined });
+    return response.data;
+  },
+
+  getJob: async (id: string) => {
+    const response = await api.get(`/integrations/ingestion/jobs/${id}`);
+    return response.data;
+  },
+
+  getRecords: async (id: string, limit = 50, offset = 0) => {
+    const response = await api.get(`/integrations/ingestion/jobs/${id}/records`, { params: { limit, offset } });
+    return response.data;
+  },
+
+  getHeaders: async (id: string) => {
+    const response = await api.get(`/integrations/ingestion/jobs/${id}/headers`);
+    return response.data;
+  },
+
+  saveMapping: async (id: string, payload: { practiceId: string; sourceSystem: string; dataset: string; target: string; fieldMap: Record<string,string>; }) => {
+    const response = await api.post(`/integrations/ingestion/jobs/${id}/map`, payload);
+    return response.data;
+  },
+
+  promote: async (id: string, payload: { target: string; fieldMap: Record<string,string>; }) => {
+    const response = await api.post(`/integrations/ingestion/jobs/${id}/promote`, payload);
+    return response.data;
+  },
+
+  deleteJob: async (id: string) => {
+    const response = await api.delete(`/integrations/ingestion/jobs/${id}`);
+    return response.data;
+  },
+
+  download: (id: string) => {
+    // returns a URL that can be used in an <a> href
+    return `${(api as any).defaults.baseURL}/integrations/ingestion/jobs/${id}/download`;
+  },
+};
