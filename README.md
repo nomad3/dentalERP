@@ -171,6 +171,17 @@ docker exec dentalerp-redis-1 redis-cli ping      # Redis cache
 ### 🎯 Frontend URLs (React SPA)
 - **Login Page**: `http://localhost:3000/auth/login` - Professional healthcare styling ⏳
 - **Dashboard**: `http://localhost:3000/dashboard` - Role-based dashboard layouts ⏳
+- **Analytics**: `http://localhost:3000/analytics` - BI analytics hub with deep-dive sections ⏳
+  - Revenue: `http://localhost:3000/analytics/revenue`
+  - Patients: `http://localhost:3000/analytics/patients`
+  - Staff: `http://localhost:3000/analytics/staff`
+  - Clinical: `http://localhost:3000/analytics/clinical`
+  - Financial: `http://localhost:3000/analytics/financial`
+  - Scheduling: `http://localhost:3000/analytics/scheduling`
+  - Retention: `http://localhost:3000/analytics/retention`
+  - Benchmarking: `http://localhost:3000/analytics/benchmarking`
+  - Forecasting: `http://localhost:3000/analytics/forecasting`
+  - Reports: `http://localhost:3000/analytics/reports`
 - **Patients**: `http://localhost:3000/patients` - Patient management interface ⏳
 - **Appointments**: `http://localhost:3000/appointments` - Scheduling system ⏳
 - **Integrations**: `http://localhost:3000/integrations` - External system status ⏳

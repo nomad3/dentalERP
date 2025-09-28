@@ -1,11 +1,20 @@
 import React from 'react';
+import { useStaffProductivity } from '../../hooks/useAnalytics';
 
 const StaffProductivity: React.FC = () => {
-  const topPerformers = [
-    { name: 'Dr. Johnson', revenue: '$2,840', utilization: '94%', rating: 4.9 },
-    { name: 'Dr. Martinez', revenue: '$2,650', utilization: '89%', rating: 4.8 },
-    { name: 'Sarah (Hygienist)', revenue: '$540', utilization: '92%', rating: 4.9 }
-  ];
+  const { data, error } = useStaffProductivity('30d');
+  const isBlank = !!error || !data?.data;
+
+  const totals = isBlank
+    ? { utilization: 0, avgAppointmentsPerProvider: 0, overtimeHours: 0, remoteStaff: 0 }
+    : data!.data;
+
+  // Placeholder top performers for demo; when API adds performers, this can be replaced
+  const topPerformers = isBlank
+    ? []
+    : [
+        { name: 'Team A', revenue: '$—', utilization: `${totals.utilization}%`, rating: 4.8 },
+      ];
 
   return (
     <div className="bg-white rounded-lg shadow border p-6">
@@ -19,16 +28,19 @@ const StaffProductivity: React.FC = () => {
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <div className="text-xl font-bold text-gray-900">47</div>
-          <div className="text-xs text-gray-500">Total Staff</div>
+          <div className="text-xl font-bold text-gray-900">{isBlank ? '—' : `${totals.utilization}%`}</div>
+          <div className="text-xs text-gray-500">Avg Utilization</div>
         </div>
         <div className="text-center p-3 bg-gray-50 rounded-lg">
-          <div className="text-xl font-bold text-green-600">94.2%</div>
-          <div className="text-xs text-gray-500">Avg Efficiency</div>
+          <div className="text-xl font-bold text-green-600">{isBlank ? '—' : totals.avgAppointmentsPerProvider}</div>
+          <div className="text-xs text-gray-500">Avg Appts/Provider</div>
         </div>
       </div>
 
       <div className="space-y-3">
+        {topPerformers.length === 0 && (
+          <div className="p-3 bg-gray-50 rounded-lg text-center text-sm text-gray-500">No data</div>
+        )}
         {topPerformers.map((performer, index) => (
           <div key={performer.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">

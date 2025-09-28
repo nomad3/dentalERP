@@ -1,25 +1,25 @@
 import React from 'react';
 import { useRevenueAnalytics } from '../../hooks/useAnalytics';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 const RevenueChart: React.FC = () => {
   const { data: revenueData, isLoading, error } = useRevenueAnalytics('6m');
 
-  // Fallback data for when API is loading or fails
-  const fallbackData = [
-    { month: 'Jan', revenue: 180000, target: 200000 },
-    { month: 'Feb', revenue: 195000, target: 200000 },
-    { month: 'Mar', revenue: 207000, target: 200000 },
-    { month: 'Apr', revenue: 198000, target: 210000 },
-    { month: 'May', revenue: 215000, target: 210000 },
-    { month: 'Jun', revenue: 225000, target: 220000 }
+  // Fallback to a blank state when the API is unavailable
+  const blankData = [
+    { month: 'Jan', revenue: 0, target: 0 },
+    { month: 'Feb', revenue: 0, target: 0 },
+    { month: 'Mar', revenue: 0, target: 0 },
+    { month: 'Apr', revenue: 0, target: 0 },
+    { month: 'May', revenue: 0, target: 0 },
+    { month: 'Jun', revenue: 0, target: 0 }
   ];
 
-  const chartData = revenueData?.data?.monthlyData || fallbackData;
-  const summary = revenueData?.data?.summary || {
-    ytdRevenue: 2400000,
-    growthRate: 12.5,
-    targetProgress: 94
-  };
+  const isBlank = !!error || !revenueData?.data;
+  const chartData = isBlank ? blankData : (revenueData?.data?.monthlyData || blankData);
+  const summary = isBlank
+    ? undefined
+    : (revenueData?.data?.summary || undefined);
 
   return (
     <div className="bg-white rounded-lg shadow border p-6">
@@ -83,18 +83,18 @@ const RevenueChart: React.FC = () => {
         <div>
           <p className="text-sm text-gray-500">YTD Revenue</p>
           <p className="text-lg font-semibold text-gray-900">
-            ${(summary.ytdRevenue / 1000000).toFixed(1)}M
+            {summary ? `${(summary.ytdRevenue / 1000000).toFixed(1)}M` : '—'}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-500">Growth Rate</p>
-          <p className={`text-lg font-semibold ${summary.growthRate > 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {summary.growthRate > 0 ? '+' : ''}{summary.growthRate}%
+          <p className={`text-lg font-semibold ${summary && summary.growthRate > 0 ? 'text-green-600' : summary ? 'text-red-600' : 'text-gray-400'}`}>
+            {summary ? `${summary.growthRate > 0 ? '+' : ''}${summary.growthRate}%` : '—'}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-500">Target Progress</p>
-          <p className="text-lg font-semibold text-primary-600">{summary.targetProgress}%</p>
+          <p className="text-lg font-semibold text-primary-600">{summary ? `${summary.targetProgress}%` : '—'}</p>
         </div>
       </div>
 

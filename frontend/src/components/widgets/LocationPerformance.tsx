@@ -1,73 +1,38 @@
 import React from 'react';
+import { useLocationPerformance } from '../../hooks/useAnalytics';
 
-interface LocationData {
+type LocationData = {
+  id?: string;
   name: string;
-  revenue: string;
+  revenue: number;
   revenueChange: number;
   patients: number;
   patientChange: number;
   efficiency: number;
-  status: 'excellent' | 'good' | 'warning' | 'poor';
-}
+  status: 'excellent' | 'good' | 'warning' | 'poor' | 'neutral';
+};
 
 const LocationPerformance: React.FC = () => {
-  // Mock data - in real implementation, this would aggregate from all external systems
-  const locations: LocationData[] = [
-    {
-      name: 'Downtown',
-      revenue: '$420K',
-      revenueChange: 8.2,
-      patients: 2847,
-      patientChange: 5.1,
-      efficiency: 96.2,
-      status: 'excellent'
-    },
-    {
-      name: 'Westside',
-      revenue: '$385K',
-      revenueChange: 3.4,
-      patients: 2634,
-      patientChange: 0.8,
-      efficiency: 94.8,
-      status: 'good'
-    },
-    {
-      name: 'Northgate',
-      revenue: '$362K',
-      revenueChange: -2.1,
-      patients: 2491,
-      patientChange: -1.2,
-      efficiency: 89.3,
-      status: 'warning'
-    },
-    {
-      name: 'Riverside',
-      revenue: '$341K',
-      revenueChange: 4.7,
-      patients: 2156,
-      patientChange: 2.3,
-      efficiency: 91.7,
-      status: 'good'
-    },
-    {
-      name: 'Suburban',
-      revenue: '$298K',
-      revenueChange: 0.1,
-      patients: 1983,
-      patientChange: 0.5,
-      efficiency: 93.1,
-      status: 'good'
-    }
-  ];
+  const { data, error } = useLocationPerformance('30d');
+  const isBlank = !!error || !data?.data;
+
+  const locations: LocationData[] = isBlank
+    ? [
+        { name: '—', revenue: 0, revenueChange: 0, patients: 0, patientChange: 0, efficiency: 0, status: 'neutral' },
+        { name: '—', revenue: 0, revenueChange: 0, patients: 0, patientChange: 0, efficiency: 0, status: 'neutral' },
+        { name: '—', revenue: 0, revenueChange: 0, patients: 0, patientChange: 0, efficiency: 0, status: 'neutral' },
+      ]
+    : (data!.data.locations as any[]);
 
   const getStatusIndicator = (status: LocationData['status']) => {
     const indicators = {
       excellent: { color: 'bg-green-500', text: '🟢' },
       good: { color: 'bg-blue-500', text: '🟡' },
       warning: { color: 'bg-yellow-500', text: '🟡' },
-      poor: { color: 'bg-red-500', text: '🔴' }
-    };
-    return indicators[status];
+      poor: { color: 'bg-red-500', text: '🔴' },
+      neutral: { color: 'bg-gray-300', text: '—' },
+    } as const;
+    return indicators[status] || indicators.neutral;
   };
 
   const getChangeColor = (change: number) => {
@@ -91,12 +56,8 @@ const LocationPerformance: React.FC = () => {
           <p className="text-sm text-gray-600">Comparative analytics across practice locations</p>
         </div>
         <div className="flex space-x-2">
-          <button className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-            Filter
-          </button>
-          <button className="px-3 py-1 text-xs bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200">
-            Export
-          </button>
+          <button className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">Filter</button>
+          <button className="px-3 py-1 text-xs bg-primary-100 text-primary-700 rounded-md hover:bg-primary-200">Export</button>
         </div>
       </div>
 
@@ -113,9 +74,9 @@ const LocationPerformance: React.FC = () => {
           </div>
 
           {/* Location Rows */}
-          {locations.map((location, index) => (
+          {locations.map((location) => (
             <div
-              key={location.name}
+              key={location.id || location.name}
               className="grid grid-cols-5 gap-4 px-3 py-3 border border-gray-100 rounded-lg hover:bg-gray-50 transition-colors"
             >
               {/* Location Name */}
@@ -126,27 +87,27 @@ const LocationPerformance: React.FC = () => {
 
               {/* Revenue */}
               <div className="text-center">
-                <div className="font-semibold text-gray-900">{location.revenue}</div>
-                <div className={`text-xs ${getChangeColor(location.revenueChange)}`}>
-                  {getChangeIcon(location.revenueChange)} {Math.abs(location.revenueChange)}%
+                <div className="font-semibold text-gray-900">{isBlank ? '—' : `$${location.revenue.toLocaleString()}`}</div>
+                <div className={`text-xs ${getChangeColor(location.revenueChange || 0)}`}>
+                  {getChangeIcon(location.revenueChange || 0)} {isBlank ? '—' : Math.abs(location.revenueChange).toString() + '%'}
                 </div>
               </div>
 
               {/* Patients */}
               <div className="text-center">
-                <div className="font-semibold text-gray-900">{location.patients.toLocaleString()}</div>
-                <div className={`text-xs ${getChangeColor(location.patientChange)}`}>
-                  {getChangeIcon(location.patientChange)} {Math.abs(location.patientChange)}%
+                <div className="font-semibold text-gray-900">{isBlank ? '—' : location.patients.toLocaleString()}</div>
+                <div className={`text-xs ${getChangeColor(location.patientChange || 0)}`}>
+                  {getChangeIcon(location.patientChange || 0)} {isBlank ? '—' : Math.abs(location.patientChange).toString() + '%'}
                 </div>
               </div>
 
               {/* Efficiency */}
               <div className="text-center">
-                <div className="font-semibold text-gray-900">{location.efficiency}%</div>
+                <div className="font-semibold text-gray-900">{isBlank ? '—' : `${location.efficiency}%`}</div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
                   <div
                     className="bg-primary-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${location.efficiency}%` }}
+                    style={{ width: `${isBlank ? 0 : location.efficiency}%` }}
                   />
                 </div>
               </div>
@@ -163,10 +124,10 @@ const LocationPerformance: React.FC = () => {
       {/* Summary */}
       <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
         <div className="text-sm text-gray-600">
-          🎯 <span className="font-medium">Best Performer:</span> Downtown
+          🎯 <span className="font-medium">Best Performer:</span> {isBlank ? '—' : data!.data.summary.bestPerformer}
         </div>
         <div className="text-sm text-gray-600">
-          ⚠️ <span className="font-medium">Needs Attention:</span> Northgate
+          ⚠️ <span className="font-medium">Needs Attention:</span> {isBlank ? '—' : data!.data.summary.needsAttention}
         </div>
       </div>
 
@@ -181,3 +142,4 @@ const LocationPerformance: React.FC = () => {
 };
 
 export default LocationPerformance;
+

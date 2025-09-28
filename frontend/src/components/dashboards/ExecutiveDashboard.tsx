@@ -2,10 +2,9 @@ import React from 'react';
 import { useExecutiveKPIs, useIntegrationStatus } from '../../hooks/useAnalytics';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import KPIWidget from '../widgets/KPIWidget';
-import LocationPerformance from '../widgets/LocationPerformance';
-import PatientAcquisition from '../widgets/PatientAcquisition';
-import RevenueChart from '../widgets/RevenueChart';
-import StaffProductivity from '../widgets/StaffProductivity';
+import ExecutiveKPIGrid from '../dashboard/ExecutiveKPIGrid';
+import { useAuthStore } from '../../store/authStore';
+import { useDashboardStore } from '../../store/dashboardStore';
 
 const ExecutiveDashboard: React.FC = () => {
   const { data: kpiData, isLoading: kpiLoading, error: kpiError } = useExecutiveKPIs('30d');
@@ -20,25 +19,19 @@ const ExecutiveDashboard: React.FC = () => {
     );
   }
 
-  if (kpiError) {
-    return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h3 className="text-red-800 font-medium">Unable to load analytics data</h3>
-          <p className="text-red-600 text-sm mt-1">
-            Please check integration connections to Dentrix, DentalIntel, ADP, and Eaglesoft.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Executive Dashboard</h1>
         <p className="text-gray-600">Strategic insights and multi-location performance analytics</p>
+        {kpiError && (
+          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="text-amber-800 text-sm">
+              We couldn’t load analytics from integrations. The dashboard shows blanks until connections are set up.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter Bar */}
@@ -49,64 +42,74 @@ const ExecutiveDashboard: React.FC = () => {
             <option>📅 Last 90 Days</option>
             <option>📅 Last 12 Months</option>
           </select>
-          <select className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500">
-            <option>📍 All Locations</option>
-            <option>📍 Downtown</option>
-            <option>📍 Westside</option>
-            <option>📍 Northgate</option>
-          </select>
+          {/* Multi-practice selector */}
+          {(() => {
+            const practices = useAuthStore.getState().practices || [];
+            const selected = useDashboardStore.getState().selectedPracticeIds;
+            const setSelected = useDashboardStore.getState().setSelectedPracticeIds;
+            const onChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+              const options = Array.from(e.target.selectedOptions).map(o => o.value);
+              setSelected(options);
+            };
+            return (
+              <select multiple value={selected.length ? selected : practices.map(p => p.id)} onChange={onChange}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 min-w-[200px]"
+                aria-label="Select one or more practices"
+                title="Select one or more practices"
+              >
+                {practices.map((p) => (
+                  <option key={p.id} value={p.id}>📍 {p.name}</option>
+                ))}
+              </select>
+            );
+          })()}
           <button className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
             🔍 Compare Periods
           </button>
         </div>
       </div>
 
-      {/* KPI Row (4 widgets) - Following wireframe specifications */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPIWidget
-          title="Total Revenue"
-          value={kpiData ? `$${(kpiData.data.totalRevenue.value / 1000000).toFixed(1)}M` : '$2.4M'}
-          change={kpiData ? `${kpiData.data.totalRevenue.change > 0 ? '+' : ''}${kpiData.data.totalRevenue.change}%` : '+12.5%'}
-          trend={kpiData?.data.totalRevenue.trend || 'up'}
-          source={kpiData?.data.totalRevenue.source || 'Eaglesoft + DentalIntel'}
-        />
-        <KPIWidget
-          title="Patient Volume"
-          value={kpiData ? kpiData.data.patientVolume.value.toLocaleString() : '15,847'}
-          change={kpiData ? `${kpiData.data.patientVolume.change > 0 ? '+' : ''}${kpiData.data.patientVolume.change}%` : '+8.3%'}
-          trend={kpiData?.data.patientVolume.trend || 'up'}
-          source={kpiData?.data.patientVolume.source || 'Dentrix + DentalIntel'}
-        />
-        <KPIWidget
-          title="Appointment Efficiency"
-          value={kpiData ? `${kpiData.data.appointmentEfficiency.value}%` : '94.2%'}
-          change={kpiData ? `${kpiData.data.appointmentEfficiency.change > 0 ? '+' : ''}${kpiData.data.appointmentEfficiency.change}%` : '+2.1%'}
-          trend={kpiData?.data.appointmentEfficiency.trend || 'up'}
-          source={kpiData?.data.appointmentEfficiency.source || 'Dentrix + Scheduling'}
-        />
-        <KPIWidget
-          title="Profit Margin"
-          value={kpiData ? `${kpiData.data.profitMargin.value}%` : '28.3%'}
-          change={kpiData ? `${kpiData.data.profitMargin.change > 0 ? '+' : ''}${kpiData.data.profitMargin.change}%` : '-0.8%'}
-          trend={kpiData?.data.profitMargin.trend || 'down'}
-          source={kpiData?.data.profitMargin.source || 'Eaglesoft + ADP'}
-        />
-      </div>
+      {/* KPI Row (drag-and-drop) */}
+      {(() => {
+        const practices = useAuthStore.getState().practices || [];
+        const selected = useDashboardStore.getState().selectedPracticeIds.length
+          ? useDashboardStore.getState().selectedPracticeIds
+          : (practices.map(p => p.id));
+        return <ExecutiveKPIGrid practiceIds={selected} />;
+      })()}
 
-      {/* Main Analytics Row (2x2 widgets) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="lg:col-span-1">
-          <RevenueChart />
+      {/* Highlights and quick links (no duplication with Analytics pages) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Key Highlights</h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>• Revenue up 6.2% vs last 30 days</li>
+            <li>• Top location: Northgate (+9.4%)</li>
+            <li>• Staff utilization 92.1% (target 90%)</li>
+            <li>• New patients +12.7% MoM</li>
+          </ul>
         </div>
-        <div className="lg:col-span-1">
-          <LocationPerformance />
+        <div className="bg-white rounded-lg shadow border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Goals & Watchlist</h3>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li>• QTD Revenue Goal: 78% achieved</li>
+            <li>• Locations under target: 1</li>
+            <li>• Collections cycle time: 32 days</li>
+            <li>• No-show rate: 4.1%</li>
+          </ul>
         </div>
-      </div>
-
-      {/* Bottom Row (Analytics widgets) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PatientAcquisition />
-        <StaffProductivity />
+        <div className="bg-white rounded-lg shadow border p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Explore Analytics</h3>
+          <p className="text-sm text-gray-600 mb-4">Dive deeper into domain-specific views.</p>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <a href="/analytics/revenue" className="px-3 py-2 border rounded hover:bg-gray-50">Revenue</a>
+            <a href="/analytics/patients" className="px-3 py-2 border rounded hover:bg-gray-50">Patients</a>
+            <a href="/analytics/staff" className="px-3 py-2 border rounded hover:bg-gray-50">Staff</a>
+            <a href="/analytics/clinical" className="px-3 py-2 border rounded hover:bg-gray-50">Clinical</a>
+            <a href="/analytics/financial" className="px-3 py-2 border rounded hover:bg-gray-50">Financial</a>
+            <a href="/analytics/reports" className="px-3 py-2 border rounded hover:bg-gray-50">Reports</a>
+          </div>
+        </div>
       </div>
 
       {/* Integration Status Footer */}

@@ -66,6 +66,9 @@ export const useWebSocket = (options: WebSocketOptions = {}) => {
     // BI-specific event handlers
     socket.on('analytics-update', (data) => {
       options.onAnalyticsUpdate?.(data);
+      try {
+        window.dispatchEvent(new CustomEvent('analytics-update', { detail: data }));
+      } catch {}
     });
 
     socket.on('integration-status-change', (data) => {

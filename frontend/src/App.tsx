@@ -14,6 +14,7 @@ const PracticesPage = React.lazy(() => import('./pages/practices/PracticesPage')
 const IntegrationsPage = React.lazy(() => import('./pages/integrations/IntegrationsPage'));
 const ManualIngestionPage = React.lazy(() => import('./pages/integrations/ManualIngestionPage'));
 const SettingsPage = React.lazy(() => import('./pages/settings/SettingsPage'));
+const AnalyticsPage = React.lazy(() => import('./pages/analytics/AnalyticsPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
 // Layout components
@@ -149,6 +150,17 @@ function App() {
                       <Route path="" element={<IntegrationsPage />} />
                       <Route path="ingestion" element={<React.Suspense fallback={<div />}> <ManualIngestionPage /> </React.Suspense>} />
                     </Routes>
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/analytics/*"
+              element={
+                <ProtectedRoute roles={['admin', 'executive', 'manager']}>
+                  <DashboardLayout>
+                    <AnalyticsPage />
                   </DashboardLayout>
                 </ProtectedRoute>
               }
