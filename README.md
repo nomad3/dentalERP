@@ -9,21 +9,6 @@ A comprehensive dental practice management system with multi-practice support, e
 
 ## 🎯 Overview
 
-### Quick Links
-- `documentation/technical-specification.md`: Full architecture and API details
-- `documentation/style-guide.md`: Code, naming, and UX style rules
-- `documentation/accessibility-compliance.md`: WCAG 2.1 AA compliance
-- `design-system/components/navigation.md`: Navigation patterns and specs
-- `design-system/components/dashboard-widget.md`: Widget system and guidelines
-- `design-system/tokens/colors.json`: Color palette tokens
-- `design-system/tokens/spacing.json`: Spacing scale tokens
-- `design-system/tokens/typography.json`: Typography tokens
-- `wireframes/executive-dashboard/layout.md`: Executive dashboard wireframe
-- `wireframes/manager-dashboard/layout.md`: Manager dashboard wireframe
-- `BI_FEATURES_COMPLETE.md`: End‑to‑end BI features and use cases
-
-This full-stack application provides a unified interface for multi-location dental practices, enabling seamless navigation between integrated systems (Dentrix, DentalIntel, ADP, Eaglesoft) while maintaining each platform's core functionality.
-
 ### ✨ Key Features
 - **🏥 Multi-Practice Support**: Manage multiple dental practice locations from a single dashboard
 - **👥 Role-Based Access**: Executive, Manager, Clinician, and Staff dashboards with appropriate permissions
