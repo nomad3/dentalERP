@@ -34,17 +34,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         if (cancelled) return;
+
+        // Get fresh token state after hydration
+        const state = useAuthStore.getState();
+        const hasTokens = !!(state.accessToken || state.refreshToken);
+
         setHydrated(true);
         setInitialized(true);
 
         // If we already have tokens, verify session and fetch profile
-        if (tokens.accessToken || tokens.refreshToken) {
+        if (hasTokens) {
           try {
             const profile = await authAPI.getProfile();
-            if (!cancelled) setUser(profile?.data || profile?.user || profile || null);
-          } catch (e) {
-            // 401 handling is centralized in axios interceptor; just ensure state is consistent
-            if (!cancelled) clearAuth();
+            if (!cancelled) {
+              setUser(profile?.data || profile?.user || profile || null);
+            }
+          } catch (e: any) {
+            // Only clear auth if it's an actual authentication error (401/403)
+            // The axios interceptor will have already tried to refresh the token
+            // Network errors or other issues should not log the user out
+            const isAuthError = e?.response?.status === 401 || e?.response?.status === 403;
+            if (!cancelled && isAuthError) {
+              console.warn('Session expired or invalid, clearing auth');
+              clearAuth();
+            } else if (!cancelled && e?.code !== 'ERR_NETWORK') {
+              // For non-network errors that aren't auth errors, log but don't clear
+              console.warn('Failed to fetch profile, but keeping session:', e?.message);
+            }
           }
         }
       } finally {

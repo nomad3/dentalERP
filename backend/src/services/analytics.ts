@@ -30,8 +30,9 @@ function parseDateRange(dateRange?: DateRange) {
     // try ISO date range: 2024-01-01..2024-03-01
     const parts = lower.split('..');
     if (parts.length === 2) {
-      const f = new Date(parts[0]);
-      const t = new Date(parts[1]);
+      const [fromStr, toStr] = parts as [string, string];
+      const f = new Date(fromStr);
+      const t = new Date(toStr);
       if (!isNaN(f.getTime()) && !isNaN(t.getTime())) return { from: f, to: t };
     }
     // fallback 30d
@@ -80,7 +81,13 @@ export class AnalyticsService {
 
     const value = await fetcher();
     try {
-      if (this.redis) await this.redis.set(key, JSON.stringify(value), ttlSec);
+      if (this.redis) {
+        if (ttlSec && ttlSec > 0) {
+          await this.redis.setex(key, ttlSec, JSON.stringify(value));
+        } else {
+          await this.redis.set(key, JSON.stringify(value));
+        }
+      }
     } catch (e) {
       logger.warn('Analytics cache write failed', { key, error: (e as Error).message });
     }
@@ -220,7 +227,7 @@ export class AnalyticsService {
         .from(schema.biDailyMetrics)
         .where(where as any);
 
-      const agg = rows.reduce((a, r) => {
+      const agg = rows.reduce((a: { collections: number; ar: { current: number; '30': number; '60': number; '90': number }; claims: { submitted: number; denied: number } }, r: any) => {
         a.collections += r.collectionsAmount || 0;
         a.ar.current = r.arCurrent || a.ar.current;
         a.ar['30'] = r.ar30 || a.ar['30'];
@@ -261,7 +268,7 @@ export class AnalyticsService {
         .from(schema.biDailyMetrics)
         .where(where as any);
       const n = rows.length || 1;
-      const totals = rows.reduce((a, r) => ({
+      const totals = rows.reduce((a: { utilization: number; noShows: number; cancellations: number; wait: number }, r: any) => ({
         utilization: a.utilization + (r.scheduleUtilization || 0),
         noShows: a.noShows + (r.noShows || 0),
         cancellations: a.cancellations + (r.cancellations || 0),
@@ -290,7 +297,8 @@ export class AnalyticsService {
         const arr = [100];
         for (let k = 1; k < months; k++) {
           const drop = 8 + Math.floor(Math.random()*7);
-          arr[k] = Math.max(20, Math.round(arr[k-1] * (1 - drop/100)));
+          const prev = arr[k-1] ?? 100;
+          arr[k] = Math.max(20, Math.round(prev * (1 - drop/100)));
         }
         cohorts.push({ cohort: label, retained: arr });
       }

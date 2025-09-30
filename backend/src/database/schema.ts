@@ -19,7 +19,7 @@ export const users = pgTable('users', {
   role: userRoleEnum('role').notNull().default('staff'),
   avatar: text('avatar'),
   phone: varchar('phone', { length: 20 }),
-  isActive: boolean('is_active').notNull().default(true),
+  active: boolean('active').notNull().default(true),
   lastLogin: timestamp('last_login'),
   preferences: jsonb('preferences').default({}),
   createdAt: timestamp('created_at').notNull().defaultNow(),

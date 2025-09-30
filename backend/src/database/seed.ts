@@ -253,7 +253,8 @@ async function main() {
   const integrationsSeed: NewIntegration[] = Array.from(insertedPractices).flatMap((p: any) => ([
     { practiceId: p.id, type: 'dentrix' as any, name: 'Dentrix', status: 'connected' as any, config: {}, isActive: true as any },
     { practiceId: p.id, type: 'dentalintel' as any, name: 'DentalIntel', status: 'connected' as any, config: {}, isActive: true as any },
-    { practiceId: p.id, type: 'adp' as any, name: 'ADP', status: 'syncing' as any, config: {}, isActive: true as any },
+    // Use 'pending' to match integration_status enum (no 'syncing')
+    { practiceId: p.id, type: 'adp' as any, name: 'ADP', status: 'pending' as any, config: {}, isActive: true as any },
   ]));
   await db.insert(integrations).values(integrationsSeed).onConflictDoNothing();
 

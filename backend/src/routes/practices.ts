@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { and, eq, inArray } from 'drizzle-orm';
-import DatabaseService from '../services/database';
+import { DatabaseService } from '../services/database';
 import { practices, locations, userPractices } from '../database/schema';
-import logger from '../utils/logger';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -23,13 +23,13 @@ router.get('/', async (req, res) => {
 
     // Otherwise, return practices linked to user
     const ups = await db.select().from(userPractices).where(eq(userPractices.userId, userId));
-    const practiceIds = ups.map(u => u.practiceId);
+    const practiceIds = ups.map((u: { practiceId: string }) => u.practiceId);
     if (practiceIds.length === 0) return res.json({ success: true, practices: [] });
     const rows = await db.select().from(practices).where(and(inArray(practices.id, practiceIds), eq(practices.isActive, true as any)));
-    res.json({ success: true, practices: rows });
+    return res.json({ success: true, practices: rows });
   } catch (error) {
     logger.error('Get practices failed:', error);
-    res.status(500).json({ error: 'Failed to fetch practices' });
+    return res.status(500).json({ error: 'Failed to fetch practices' });
   }
 });
 
@@ -39,10 +39,10 @@ router.get('/:id', async (req, res) => {
     const db = DatabaseService.getInstance().getDb();
     const [row] = await db.select().from(practices).where(eq(practices.id, req.params.id)).limit(1);
     if (!row) return res.status(404).json({ error: 'Practice not found' });
-    res.json({ success: true, practice: row });
+    return res.json({ success: true, practice: row });
   } catch (error) {
     logger.error('Get practice failed:', error);
-    res.status(500).json({ error: 'Failed to fetch practice' });
+    return res.status(500).json({ error: 'Failed to fetch practice' });
   }
 });
 
@@ -51,10 +51,10 @@ router.get('/:id/locations', async (req, res) => {
   try {
     const db = DatabaseService.getInstance().getDb();
     const rows = await db.select().from(locations).where(eq(locations.practiceId, req.params.id));
-    res.json({ success: true, locations: rows });
+    return res.json({ success: true, locations: rows });
   } catch (error) {
     logger.error('Get locations failed:', error);
-    res.status(500).json({ error: 'Failed to fetch locations' });
+    return res.status(500).json({ error: 'Failed to fetch locations' });
   }
 });
 

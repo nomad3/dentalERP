@@ -6,8 +6,8 @@ import { parse as parseCsvSync } from 'csv-parse/sync';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { ingestionJobs, ingestionRecords, ingestionMappings } from '../database/ingestion';
 import * as schema from '../database/schema';
-import DatabaseService from './database';
-import logger from '../utils/logger';
+import { DatabaseService } from './database';
+import { logger } from '../utils/logger';
 
 export type IngestionParams = {
   practiceId: string;
@@ -197,23 +197,25 @@ export class IngestionService {
     const rows = await this.getJobRecords(jobId, 10000, 0);
     let inserted = 0, failed = 0;
     for (const r of rows) {
-      const src = r.data || {};
+      const src = r.data || {} as Record<string, any>;
+      const get = (k: string | undefined) => (k ? (src as Record<string, any>)[k] : undefined);
       try {
         const record: any = {
           practiceId: job.practiceId,
-          externalId: src[fieldMap['externalId']] || undefined,
-          firstName: src[fieldMap['firstName']],
-          lastName: src[fieldMap['lastName']],
-          email: src[fieldMap['email']] || undefined,
-          phone: src[fieldMap['phone']] || undefined,
-          gender: src[fieldMap['gender']] || undefined,
-          notes: src[fieldMap['notes']] || undefined,
+          externalId: get(fieldMap['externalId']) || undefined,
+          firstName: get(fieldMap['firstName']),
+          lastName: get(fieldMap['lastName']),
+          email: get(fieldMap['email']) || undefined,
+          phone: get(fieldMap['phone']) || undefined,
+          gender: get(fieldMap['gender']) || undefined,
+          notes: get(fieldMap['notes']) || undefined,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
         const dobKey = fieldMap['dateOfBirth'];
-        if (dobKey && src[dobKey]) {
-          const d = new Date(src[dobKey]);
+        const dobVal = get(dobKey);
+        if (dobKey && dobVal) {
+          const d = new Date(String(dobVal));
           if (!isNaN(d.getTime())) record.dateOfBirth = d;
         }
         const [insertedRow] = await db.insert(schema.patients).values(record as any).returning();

@@ -1,8 +1,10 @@
 export type DateRange = '7d' | '30d' | '90d' | '6m' | '12m' | 'ytd' | string;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/analytics';
+// Prefer relative default so Vite dev proxy or Nginx can route to backend
+const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) || '/api';
+const API_BASE = `${base.replace(/\/$/, '')}/analytics`;
 
-function authHeader() {
+function authHeader(): Record<string, string> {
   const token = localStorage.getItem('access_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 }

@@ -91,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
           state.practices = practices;
           // Set current practice to first practice if not set
           if (practices.length > 0 && !state.currentPractice) {
-            state.currentPractice = practices[0];
+            state.currentPractice = practices[0] ?? null;
           }
         }),
 

@@ -41,8 +41,7 @@
   },
   "include": [
     "src/**/*",
-    "src/**/*.json",
-    "vite.config.ts"
+    "src/**/*.json"
   ],
   "exclude": [
     "node_modules",

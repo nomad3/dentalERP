@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useExecutiveKPIs, useIntegrationStatus } from '../../hooks/useAnalytics';
-import { LoadingSpinner } from '../ui/LoadingSpinner';
-import KPIWidget from '../widgets/KPIWidget';
-import ExecutiveKPIGrid from '../dashboard/ExecutiveKPIGrid';
 import { useAuthStore } from '../../store/authStore';
 import { useDashboardStore } from '../../store/dashboardStore';
+import ExecutiveKPIGrid from '../dashboard/ExecutiveKPIGrid';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
 
 const ExecutiveDashboard: React.FC = () => {
   const { data: kpiData, isLoading: kpiLoading, error: kpiError } = useExecutiveKPIs('30d');
@@ -26,7 +25,7 @@ const ExecutiveDashboard: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Executive Dashboard</h1>
         <p className="text-gray-600">Strategic insights and multi-location performance analytics</p>
-        {kpiError && (
+        {!!kpiError && (
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
             <div className="text-amber-800 text-sm">
               We couldn’t load analytics from integrations. The dashboard shows blanks until connections are set up.

@@ -47,7 +47,7 @@ router.get('/status', async (req, res) => {
       }
     };
 
-    res.json({
+    return res.json({
       success: true,
       data: integrationStatus,
       timestamp: new Date().toISOString(),
@@ -60,7 +60,7 @@ router.get('/status', async (req, res) => {
     });
   } catch (error) {
     logger.error('Integration status error:', error);
-    res.status(500).json({ error: 'Failed to fetch integration status' });
+    return res.status(500).json({ error: 'Failed to fetch integration status' });
   }
 });
 
@@ -80,7 +80,7 @@ router.get('/:system/health', async (req, res) => {
       dataQuality: 'good'
     };
 
-    res.json({
+    return res.json({
       success: true,
       system,
       data: mockHealth,
@@ -88,7 +88,7 @@ router.get('/:system/health', async (req, res) => {
     });
   } catch (error) {
     logger.error('Integration health error:', error);
-    res.status(500).json({ error: 'Failed to fetch integration health' });
+    return res.status(500).json({ error: 'Failed to fetch integration health' });
   }
 });
 
@@ -115,7 +115,7 @@ const upload = multer({
 
 // Supported file types
 router.get('/ingestion/supported', async (_req, res) => {
-  res.json({
+  return res.json({
     types: ['csv', 'pdf', 'json', 'txt'],
     maxSizeMB: 50,
   });
@@ -153,14 +153,14 @@ router.post('/ingestion/upload', upload.single('file'), async (req, res) => {
       preview = { pages: 'text will be extracted during processing' };
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       job,
       preview,
     });
   } catch (error) {
     logger.error('Ingestion upload error:', error);
-    res.status(500).json({ error: 'Failed to upload and create ingestion job' });
+    return res.status(500).json({ error: 'Failed to upload and create ingestion job' });
   }
 });
 
@@ -169,10 +169,10 @@ router.post('/ingestion/jobs/:id/process', async (req, res) => {
   try {
     const { id } = req.params;
     const result = await IngestionService.processJob(id);
-    res.json({ success: true, result });
+    return res.json({ success: true, result });
   } catch (error) {
     logger.error('Ingestion process error:', error);
-    res.status(500).json({ error: 'Failed to process ingestion job' });
+    return res.status(500).json({ error: 'Failed to process ingestion job' });
   }
 });
 
@@ -182,10 +182,10 @@ router.get('/ingestion/jobs', async (req, res) => {
     const practiceId = req.query.practiceId as string | undefined;
     const practiceIds = practiceId ? [practiceId] : ((req as any).user?.practiceIds || []);
     const jobs = await IngestionService.listJobs(practiceIds, 100);
-    res.json({ success: true, jobs });
+    return res.json({ success: true, jobs });
   } catch (error) {
     logger.error('Ingestion list jobs error:', error);
-    res.status(500).json({ error: 'Failed to list ingestion jobs' });
+    return res.status(500).json({ error: 'Failed to list ingestion jobs' });
   }
 });
 
@@ -194,10 +194,10 @@ router.get('/ingestion/jobs/:id', async (req, res) => {
   try {
     const job = await IngestionService.getJob(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
-    res.json({ success: true, job });
+    return res.json({ success: true, job });
   } catch (error) {
     logger.error('Ingestion get job error:', error);
-    res.status(500).json({ error: 'Failed to fetch ingestion job' });
+    return res.status(500).json({ error: 'Failed to fetch ingestion job' });
   }
 });
 
@@ -207,10 +207,10 @@ router.get('/ingestion/jobs/:id/records', async (req, res) => {
     const limit = Math.min(parseInt(String(req.query.limit || '50'), 10), 200);
     const offset = Math.max(parseInt(String(req.query.offset || '0'), 10), 0);
     const rows = await IngestionService.getJobRecords(req.params.id, limit, offset);
-    res.json({ success: true, records: rows });
+    return res.json({ success: true, records: rows });
   } catch (error) {
     logger.error('Ingestion get records error:', error);
-    res.status(500).json({ error: 'Failed to fetch ingestion records' });
+    return res.status(500).json({ error: 'Failed to fetch ingestion records' });
   }
 });
 
@@ -218,10 +218,10 @@ router.get('/ingestion/jobs/:id/records', async (req, res) => {
 router.get('/ingestion/jobs/:id/headers', async (req, res) => {
   try {
     const headers = await IngestionService.getHeaders(req.params.id);
-    res.json({ success: true, headers });
+    return res.json({ success: true, headers });
   } catch (error) {
     logger.error('Ingestion headers error:', error);
-    res.status(500).json({ error: 'Failed to fetch headers' });
+    return res.status(500).json({ error: 'Failed to fetch headers' });
   }
 });
 
@@ -241,10 +241,10 @@ router.post('/ingestion/jobs/:id/map', async (req, res) => {
       fieldMap,
       createdBy: userId,
     });
-    res.json({ success: true, mapping });
+    return res.json({ success: true, mapping });
   } catch (error) {
     logger.error('Ingestion save mapping error:', error);
-    res.status(500).json({ error: 'Failed to save mapping' });
+    return res.status(500).json({ error: 'Failed to save mapping' });
   }
 });
 
@@ -257,10 +257,10 @@ router.post('/ingestion/jobs/:id/promote', async (req, res) => {
     }
     if (!fieldMap) return res.status(400).json({ error: 'fieldMap is required' });
     const result = await IngestionService.promotePatients(req.params.id, fieldMap);
-    res.json({ success: true, result });
+    return res.json({ success: true, result });
   } catch (error) {
     logger.error('Ingestion promote error:', error);
-    res.status(500).json({ error: 'Failed to promote records' });
+    return res.status(500).json({ error: 'Failed to promote records' });
   }
 });
 
@@ -273,10 +273,10 @@ router.delete('/ingestion/jobs/:id', async (req, res) => {
     const db = DatabaseService.getInstance().getDb();
     await db.delete(IngestionRecords).where(eq(IngestionRecords.jobId, job.id));
     await db.delete(IngestionJobs).where(eq(IngestionJobs.id, job.id));
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     logger.error('Ingestion delete error:', error);
-    res.status(500).json({ error: 'Failed to delete job' });
+    return res.status(500).json({ error: 'Failed to delete job' });
   }
 });
 
@@ -288,10 +288,10 @@ router.get('/ingestion/jobs/:id/download', async (req, res) => {
     const filePath = job.storagePath;
     const filename = job.originalFilename;
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.sendFile(path.resolve(filePath));
+    return res.sendFile(path.resolve(filePath));
   } catch (error) {
     logger.error('Ingestion download error:', error);
-    res.status(500).json({ error: 'Failed to download file' });
+    return res.status(500).json({ error: 'Failed to download file' });
   }
 });
 
@@ -302,15 +302,15 @@ router.post('/ingestion/jobs/:id/cancel', async (req, res) => {
     const job = await IngestionService.getJob(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
     await db.update(IngestionJobs).set({ status: 'failed', error: 'Cancelled by user', updatedAt: new Date() }).where(eq(IngestionJobs.id, job.id));
-    res.json({ success: true });
+    return res.json({ success: true });
   } catch (error) {
     logger.error('Ingestion cancel error:', error);
-    res.status(500).json({ error: 'Failed to cancel job' });
+    return res.status(500).json({ error: 'Failed to cancel job' });
   }
 });
 
 router.get('/', (req, res) => {
-  res.json({
+  return res.json({
     message: 'Integration management API',
     endpoints: [
       'GET /status - Get all integration status',

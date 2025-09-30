@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import api, { analyticsAPI } from '../services/api';
+import api from '../services/api';
 
 type WidgetItem = { id: string };
 
@@ -17,7 +17,7 @@ type DashboardState = {
 
 export const useDashboardStore = create<DashboardState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       selectedPracticeIds: [],
       layout: [],
       widgets: {},
@@ -55,4 +55,3 @@ export const useDashboardStore = create<DashboardState>()(
 );
 
 export default useDashboardStore;
-

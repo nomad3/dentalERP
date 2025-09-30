@@ -56,11 +56,19 @@ services:
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || curl -sf http://localhost:3001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     command: sh -c "npm install && npm run db:generate && npm run db:push && npx tsx watch src/server.ts"
 
   # Frontend Application
@@ -80,8 +88,28 @@ services:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     command: sh -c "apk add --no-cache python3 make g++ libc6-compat && npm install && npm run dev -- --host 0.0.0.0"
+
+  # One-shot DB initializer for dev (migrate + seed)
+  db-init:
+    image: node:20-alpine
+    restart: "no"
+    working_dir: /app
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/dental_erp_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dental-erp-super-secret-jwt-key-development-only
+      JWT_REFRESH_SECRET: dental-erp-super-secret-refresh-key-development-only
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -lc "npm install && npm run db:generate && npm run db:push && npm run db:seed"
 
   # pgAdmin (Database Administration)
   pgadmin:
@@ -127,8 +155,49 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - nginx_logs:/var/log/nginx
     depends_on:
-      - frontend
-      - backend
+      - frontend-prod
+      - backend-prod
+    profiles:
+      - legacy-proxy
+
+  # Production Backend (built with TypeScript)
+  backend-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: dental-erp-backend:prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/dental_erp_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dental-erp-super-secret-jwt-key-development-only
+      JWT_REFRESH_SECRET: dental-erp-super-secret-refresh-key-development-only
+      FRONTEND_URL: http://localhost
+      MOCK_INTEGRATIONS: "true"
+      ENABLE_AUDIT_LOGGING: "true"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - production
+
+  # Production Frontend (built by Vite and served by Nginx)
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: dental-erp-frontend:prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-prod
     profiles:
       - production
 

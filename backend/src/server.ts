@@ -18,7 +18,6 @@ import { authMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/errorHandler';
 
 // Import routes
-import analyticsRoutes from './routes/analytics';
 import appointmentRoutes from './routes/appointments';
 import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';

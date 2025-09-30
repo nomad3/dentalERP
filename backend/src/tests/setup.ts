@@ -1,3 +1,5 @@
+/// <reference types="jest" />
+import { jest } from '@jest/globals';
 // Jest test setup for backend
 // Increase default timeout for integration-like tests
 jest.setTimeout(30000);
