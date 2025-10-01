@@ -7,6 +7,10 @@
 
 A comprehensive dental practice management system with multi-practice support, external system integrations, and modern web architecture. Designed specifically for dental practice rollups managing multiple locations with unified dashboards and real-time analytics.
 
+## 🖼️ Screenshot
+
+![Executive Dashboard](documentation/images/executive-dashboard.png)
+
 ## 🎯 Overview
 
 ### ✨ Key Features
