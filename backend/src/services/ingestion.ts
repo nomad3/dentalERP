@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import { createReadStream } from 'fs';
 import pdfParse from 'pdf-parse';
 import { parse as parseCsvSync } from 'csv-parse/sync';
+import { parseDentrixPdf, parseEaglesoftPdf } from './ingestion-parsers';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { ingestionJobs, ingestionRecords, ingestionMappings } from '../database/ingestion';
 import * as schema from '../database/schema';
@@ -119,15 +120,35 @@ export class IngestionService {
       } else if (job.fileType === 'pdf') {
         const dataBuffer = await fs.readFile(job.storagePath);
         const parsed = await pdfParse(dataBuffer);
-        total = 1;
-        await db.insert(ingestionRecords).values({
-          jobId: job.id,
-          index: 0,
-          dataset: job.dataset,
-          data: { text: parsed.text },
-          createdAt: new Date(),
-        });
-        processed = 1;
+        const text = parsed.text;
+        
+        let records: any[] = [];
+        if (job.sourceSystem === 'dentrix') {
+          records = await parseDentrixPdf(text);
+        } else if (job.sourceSystem === 'eaglesoft') {
+          records = await parseEaglesoftPdf(text);
+        } else {
+          records.push({ text });
+        }
+
+        total = records.length;
+        processed = 0;
+        if (total > 0) {
+          const batchValues = records.map((rec, idx) => ({
+            jobId: job.id,
+            index: idx,
+            dataset: job.dataset,
+            data: rec,
+            createdAt: new Date(),
+          }));
+          // Insert in chunks to avoid huge single insert
+          const chunkSize = 1000;
+          for (let i = 0; i < batchValues.length; i += chunkSize) {
+            const chunk = batchValues.slice(i, i + chunkSize);
+            await db.insert(ingestionRecords).values(chunk);
+          }
+          processed = total;
+        }
       } else if (job.fileType === 'json' || job.fileType === 'txt') {
         const fileContent = await fs.readFile(job.storagePath, 'utf8');
         let payload: any;
